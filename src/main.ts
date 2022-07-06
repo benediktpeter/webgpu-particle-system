@@ -3,14 +3,22 @@ import {Renderer} from "./renderer";
 
 
 let renderer = new Renderer();
-renderer.initRenderer()
-    .then(() => renderer.initTriangle()
-        .then(()=>renderer.renderTriangle())
-);
+
+function frame() {
+    renderer.frame();
+    requestAnimationFrame(frame);
+}
+
+function setupAndRenderTestQuad() {
+    renderer.initCheck()
+        .then(() => renderer.initRenderer()
+            .then(() => requestAnimationFrame(frame))
+        );
+}
+
+setupAndRenderTestQuad()
+
 
 window.addEventListener('resize', function() {
-    renderer.initRenderer()
-        .then(() => renderer.initTriangle()
-            .then(()=>renderer.renderTriangle())
-        );
+    setupAndRenderTestQuad()
 });
