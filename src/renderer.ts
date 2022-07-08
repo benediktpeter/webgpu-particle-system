@@ -6,6 +6,7 @@ import fullScreenQuadVertexShader from './shaders/particle_quad.vert.wgsl'
 import {loadTexture} from "./textures";
 import {VertexUniformBuffer} from "./vertexUniformBuffer";
 import {vec3} from "gl-matrix";
+import {Camera} from "./camera";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -23,6 +24,8 @@ export class Renderer {
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
 
+    private camera? : Camera;
+    private cameraUniformBuffer?: GPUBuffer;
 
 
     calculateDeltaTime(): void {
@@ -87,6 +90,13 @@ export class Renderer {
         });
 
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, vec3.fromValues(-0.2, 0.2, 1), 50, 50);
+        this.camera = new Camera([0,0,-3], [0,0,0]);
+        this.cameraUniformBuffer = this.device.createBuffer({
+            size: 16*4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        this.writeCameraBuffer();
+
 
         const testTexture = await loadTexture(this.device, "circle_01.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -101,19 +111,40 @@ export class Renderer {
                     }
                 },
                 {
-                    binding: 1,
+                    binding: 2,
                     resource: testTexture.sampler
                 },
                 {
-                    binding: 2,
+                    binding: 3,
                     resource: testTexture.texture.createView()
+                }
+                ,
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: this.cameraUniformBuffer,
+                        offset: 0,
+                        size: 16*4
+                    }
                 }
             ]
         });
 
     }
 
+    //this should probably be moved into the camera class
+    private writeCameraBuffer() {
+        if(!this.camera) {
+            throw new Error("renderer.camera not defined!")
+        }
+        const cameraMat = new Float32Array([...this.camera.getViewProjectionMatrix()]);
+        this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
+    }
+
     public renderTestQuad() {
+        //update uniforms
+        this.writeCameraBuffer()
+
         //render
         const commandEncoder = this.device.createCommandEncoder();
         const textureView = this.context.getCurrentTexture().createView();
