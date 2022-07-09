@@ -7,6 +7,7 @@ import {loadTexture} from "./textures";
 import {VertexUniformBuffer} from "./vertexUniformBuffer";
 import {vec3} from "gl-matrix";
 import {Camera} from "./camera";
+import {Particles} from "./particles";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -26,6 +27,7 @@ export class Renderer {
 
     private camera? : Camera;
     private cameraUniformBuffer?: GPUBuffer;
+    private particleSystem?: Particles;
 
 
     calculateDeltaTime(): void {
@@ -73,7 +75,22 @@ export class Renderer {
                 module: this.device.createShaderModule({
                     code: fullScreenQuadVertexShader
                 }),
-                entryPoint: "main"
+                entryPoint: "main",
+                buffers: [
+                    {
+                        // instanced particles buffer
+                        arrayStride: Particles.INSTANCE_SIZE,
+                        stepMode: 'instance',
+                        attributes: [
+                            {
+                                // position
+                                shaderLocation: 0,
+                                offset: 0,
+                                format: 'float32x3',
+                            }
+                        ],
+                    }
+                ]
             },
             fragment: {
                 module: this.device.createShaderModule({
@@ -89,16 +106,17 @@ export class Renderer {
             }
         });
 
-        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, vec3.fromValues(-0.2, 0.2, 1), 50, 50);
-        this.camera = new Camera([0,0,-3], [0,0,0]);
+        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 100, 100);
+        this.camera = new Camera([0,0,-7], [0,0,0]);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
         this.writeCameraBuffer();
 
+        this.particleSystem = new Particles(this.device, true);
 
-        const testTexture = await loadTexture(this.device, "circle_01.png");
+        const particleTexture = await loadTexture(this.device, "1x1-white.png");
         this.uniformBindGroup = this.device.createBindGroup({
             layout: this.testQuadPipeline.getBindGroupLayout(0),
             entries: [
@@ -112,11 +130,11 @@ export class Renderer {
                 },
                 {
                     binding: 2,
-                    resource: testTexture.sampler
+                    resource: particleTexture.sampler
                 },
                 {
                     binding: 3,
-                    resource: testTexture.texture.createView()
+                    resource: particleTexture.texture.createView()
                 }
                 ,
                 {
@@ -158,7 +176,12 @@ export class Renderer {
         });
         renderPass.setPipeline(this.testQuadPipeline);
         renderPass.setBindGroup(0, this.uniformBindGroup as GPUBindGroup);
-        renderPass.draw(6, 1, 0, 0);
+        if(this.particleSystem)
+            renderPass.setVertexBuffer(0, this.particleSystem.particleBuffer);
+        else
+            console.log("particle system not setup");
+
+        renderPass.draw(6, this.particleSystem?.numParticles, 0, 0);
         renderPass.end();
 
         this.device.queue.submit([commandEncoder.finish()]);
