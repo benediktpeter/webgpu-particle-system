@@ -4,8 +4,10 @@ export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 //+ 4; // vec3 position, float lifetime
 
-    private _numParticles = 3;
+    private _numParticles = 30;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
+    private _initialVelocity: number = 1;
+    private _particleLifetime: number = 5;
 
     private _device : GPUDevice;
     private _particleBuffer? : GPUBuffer;
@@ -14,6 +16,9 @@ export class Particles {
 
 
     private _particlePositionsCPU : Float32Array = new Float32Array();
+    private _particleVelocitiesCPU : Float32Array = new Float32Array();
+    private _particleLifetimesCPU : Float32Array = new Float32Array();
+
 
 
     constructor(device: GPUDevice, useCPU: boolean) {
@@ -21,7 +26,6 @@ export class Particles {
             throw new Error("GPU particle computation has not been implemented yet.")
         }
         this._device = device;
-        //this._particleBuffer = particleBuffer;
         this._useCPU = useCPU;
 
         if(this._useCPU) {
@@ -32,35 +36,91 @@ export class Particles {
     }
 
     private initCPU() : void {
-        //we use hardcoded values for now
-        this._particlePositionsCPU = new Float32Array(3*3); // might need 4
-        this._particlePositionsCPU.set([0,0,0], 0);
-        this._particlePositionsCPU.set([-3,3,0], 3);
-        this._particlePositionsCPU.set([3,0,3], 6);
+        // spawn all particles at the origin
+        this._particlePositionsCPU = new Float32Array(3 * this._numParticles);
+        for (let i = 0; i < this._numParticles; i++ ) {
+            this._particlePositionsCPU.set(this._originPos, 3 * i);
+        }
 
-        //create vertexbuffer
+        // create vertex buffer
+        this.createPositionsVertexBuffer();
+
+
+        // initialize velocities and lifetimes
+        this._particleVelocitiesCPU = new Float32Array(3 * this._numParticles);
+        this._particleLifetimesCPU = new Float32Array(this._numParticles);
+        for (let i = 0; i < this._numParticles; i++) {
+            let velocity = Particles.getRandomVec3(true)
+            vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
+            this._particleVelocitiesCPU.set(velocity, 3 * i)
+
+            this._particleLifetimesCPU.set([this._particleLifetime], i);
+        }
+
+        // write particle positions into gpu buffer
+        // @ts-ignore
+        new Float32Array(this._particleBuffer.getMappedRange()).set(this._particlePositionsCPU);
+        // @ts-ignore
+        this._particleBuffer.unmap();
+
+    }
+
+
+    private createPositionsVertexBuffer(writeData: boolean = false) {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
             mappedAtCreation: true,
         });
-
-        //write particle positions into gpu buffer
-        new Float32Array(this._particleBuffer.getMappedRange()).set(this._particlePositionsCPU);
-        this._particleBuffer.unmap();
-        //extract into separate method?
-
+        if (writeData){
+            new Float32Array(this._particleBuffer.getMappedRange()).set(this._particlePositionsCPU);
+            this._particleBuffer.unmap();
+        }
     }
-
-
     private initGPU() {
         console.log("GPU particles not yet implemented");
     }
 
     public update(deltatime : number) : void {
-        //todo: implement per frame update for cpu and gpu
+        if(this._useCPU)
+            this.updateCPU(deltatime);
     }
 
+
+    private updateCPU(deltatime: number) {
+        for (let i = 0; i < this._numParticles; i++) {
+            let pos = vec3.fromValues(this._particlePositionsCPU[3 * i], this._particlePositionsCPU[3 * i + 1], this._particlePositionsCPU[3 * i + 2])
+            let velocity = vec3.fromValues(this._particleVelocitiesCPU[3 * i], this._particleVelocitiesCPU[3 * i + 1], this._particleVelocitiesCPU[3 * i + 2])
+            let lifetime = this._particleLifetimesCPU[i];
+            // todo: handle lifetime
+
+            // todo: apply gravity to velocity
+
+            let perFrameVelocity = vec3.fromValues(velocity[0] * deltatime, velocity[1] * deltatime, velocity[2] * deltatime); //scalar multiplication with deltatime
+
+            vec3.add(pos, pos, perFrameVelocity);
+
+            this._particlePositionsCPU.set(pos, i * 3);
+
+            lifetime -= deltatime;
+            this._particleLifetimesCPU.set([lifetime], i);
+        }
+
+        //since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffer has to be destroyed and recreated in order to update it
+        this._particleBuffer?.destroy()
+        this.createPositionsVertexBuffer(true)
+    }
+
+    private static getRandomVec3(normalize: boolean = false) {
+        let result = vec3.create();
+        //fill with random numbers between -1 and 1
+        result[0] = (Math.random() - 0.5) * 2;
+        result[1] = (Math.random() - 0.5) * 2;
+        result[2] = (Math.random() - 0.5) * 2;
+        if (normalize)
+            vec3.normalize(result, result);
+        return result;
+    }
 
     get numParticles(): number {
         return this._numParticles;
@@ -75,4 +135,11 @@ export class Particles {
     }
 
 
+    get initialVelocity(): number {
+        return this._initialVelocity;
+    }
+
+    set initialVelocity(value: number) {
+        this._initialVelocity = value;
+    }
 }

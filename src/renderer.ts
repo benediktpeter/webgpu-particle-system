@@ -160,6 +160,9 @@ export class Renderer {
     }
 
     public renderTestQuad() {
+        //update particles
+        this.particleSystem?.update(this.deltaTime);
+
         //update uniforms
         this.writeCameraBuffer()
 
