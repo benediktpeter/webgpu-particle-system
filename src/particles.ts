@@ -4,10 +4,11 @@ export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 //+ 4; // vec3 position, float lifetime
 
-    private _numParticles = 30;
+    private _numParticles = 50;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
     private _initialVelocity: number = 1;
     private _particleLifetime: number = 5;
+    private _gravity: vec3 = [0,-0.5,0]
 
     private _device : GPUDevice;
     private _particleBuffer? : GPUBuffer;
@@ -92,21 +93,29 @@ export class Particles {
             let pos = vec3.fromValues(this._particlePositionsCPU[3 * i], this._particlePositionsCPU[3 * i + 1], this._particlePositionsCPU[3 * i + 2])
             let velocity = vec3.fromValues(this._particleVelocitiesCPU[3 * i], this._particleVelocitiesCPU[3 * i + 1], this._particleVelocitiesCPU[3 * i + 2])
             let lifetime = this._particleLifetimesCPU[i];
-            // todo: handle lifetime
 
-            // todo: apply gravity to velocity
+            // respawn expired particles
+            if (lifetime <= 0) {
+                // todo: spawn new particle at index i(*3)
+            }
 
-            let perFrameVelocity = vec3.fromValues(velocity[0] * deltatime, velocity[1] * deltatime, velocity[2] * deltatime); //scalar multiplication with deltatime
+            // apply gravity to velocity
+            velocity = vec3.add(velocity, velocity, Particles.multiplyVec3WithNumber(this.gravity, deltatime));
 
-            vec3.add(pos, pos, perFrameVelocity);
+            // apply force to position
+            vec3.add(pos, pos, Particles.multiplyVec3WithNumber(velocity, deltatime));
 
-            this._particlePositionsCPU.set(pos, i * 3);
-
+            // update lifetime
             lifetime -= deltatime;
+
+            // update data in arrays
+            this._particlePositionsCPU.set(pos, i * 3);
+            this._particleVelocitiesCPU.set(velocity, i * 3);
             this._particleLifetimesCPU.set([lifetime], i);
         }
 
-        //since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffer has to be destroyed and recreated in order to update it
+        // update GPU buffers
+        // since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffer has to be destroyed and recreated in order to update it
         this._particleBuffer?.destroy()
         this.createPositionsVertexBuffer(true)
     }
@@ -141,5 +150,19 @@ export class Particles {
 
     set initialVelocity(value: number) {
         this._initialVelocity = value;
+    }
+
+
+    get gravity(): vec3 {
+        return this._gravity;
+    }
+
+    set gravity(value: vec3) {
+        this._gravity = value;
+    }
+
+    // helper method for multiplying a vec3 with a number
+    private static multiplyVec3WithNumber(vector: vec3, scalar: number): vec3 {
+        return vec3.fromValues(vector[0] * scalar, vector[1] * scalar, vector[2] * scalar);
     }
 }
