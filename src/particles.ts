@@ -4,7 +4,7 @@ export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 //+ 4; // vec3 position, float lifetime
 
-    private _numParticles = 50;
+    private _numParticles = 200;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
     private _initialVelocity: number = 1;
     private _particleLifetime: number = 5;
@@ -96,7 +96,10 @@ export class Particles {
 
             // respawn expired particles
             if (lifetime <= 0) {
-                // todo: spawn new particle at index i(*3)
+                pos = this._originPos;
+                velocity = Particles.getRandomVec3(true)
+                vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
+                lifetime = this._particleLifetime;
             }
 
             // apply gravity to velocity
@@ -131,6 +134,11 @@ export class Particles {
         return result;
     }
 
+    // helper method for multiplying a vec3 with a number
+    private static multiplyVec3WithNumber(vector: vec3, scalar: number): vec3 {
+        return vec3.fromValues(vector[0] * scalar, vector[1] * scalar, vector[2] * scalar);
+    }
+
     get numParticles(): number {
         return this._numParticles;
     }
@@ -143,7 +151,6 @@ export class Particles {
         return <GPUBuffer>this._particleBuffer;
     }
 
-
     get initialVelocity(): number {
         return this._initialVelocity;
     }
@@ -151,7 +158,6 @@ export class Particles {
     set initialVelocity(value: number) {
         this._initialVelocity = value;
     }
-
 
     get gravity(): vec3 {
         return this._gravity;
@@ -161,8 +167,5 @@ export class Particles {
         this._gravity = value;
     }
 
-    // helper method for multiplying a vec3 with a number
-    private static multiplyVec3WithNumber(vector: vec3, scalar: number): vec3 {
-        return vec3.fromValues(vector[0] * scalar, vector[1] * scalar, vector[2] * scalar);
-    }
+
 }
