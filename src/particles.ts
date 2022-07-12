@@ -1,14 +1,15 @@
-import {mat4, vec3, vec4} from 'gl-matrix';
+import {mat4, vec2, vec3, vec4} from 'gl-matrix';
 
 export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 //+ 4; // vec3 position, float lifetime
 
-    private _numParticles = 200;
+    private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
     private _initialVelocity: number = 1;
     private _particleLifetime: number = 5;
     private _gravity: vec3 = [0,-0.5,0]
+    private _maxNumParticlesSpawnPerSecond: number = 80;
 
     private _device : GPUDevice;
     private _particleBuffer? : GPUBuffer;
@@ -55,7 +56,7 @@ export class Particles {
             vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
             this._particleVelocitiesCPU.set(velocity, 3 * i)
 
-            this._particleLifetimesCPU.set([this._particleLifetime], i);
+            this._particleLifetimesCPU.set([0], i);
         }
 
         // write particle positions into gpu buffer
@@ -88,7 +89,10 @@ export class Particles {
     }
 
 
-    private updateCPU(deltatime: number) {
+    private updateCPU(deltaTime: number) {
+        const maxSpawnsPerFrame = Math.max(this._maxNumParticlesSpawnPerSecond * deltaTime , 1);
+        let particlesSpawnedThisFrame = 0;
+
         for (let i = 0; i < this._numParticles; i++) {
             let pos = vec3.fromValues(this._particlePositionsCPU[3 * i], this._particlePositionsCPU[3 * i + 1], this._particlePositionsCPU[3 * i + 2])
             let velocity = vec3.fromValues(this._particleVelocitiesCPU[3 * i], this._particleVelocitiesCPU[3 * i + 1], this._particleVelocitiesCPU[3 * i + 2])
@@ -96,20 +100,24 @@ export class Particles {
 
             // respawn expired particles
             if (lifetime <= 0) {
+                if(particlesSpawnedThisFrame >= maxSpawnsPerFrame)  // limit the number of particles that can spawn
+                    continue;
+
                 pos = this._originPos;
                 velocity = Particles.getRandomVec3(true)
                 vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
                 lifetime = this._particleLifetime;
+                particlesSpawnedThisFrame++;
             }
 
             // apply gravity to velocity
-            velocity = vec3.add(velocity, velocity, Particles.multiplyVec3WithNumber(this.gravity, deltatime));
+            velocity = vec3.add(velocity, velocity, Particles.multiplyVec3WithNumber(this.gravity, deltaTime));
 
-            // apply force to position
-            vec3.add(pos, pos, Particles.multiplyVec3WithNumber(velocity, deltatime));
+            // apply velocity to position
+            vec3.add(pos, pos, Particles.multiplyVec3WithNumber(velocity, deltaTime));
 
             // update lifetime
-            lifetime -= deltatime;
+            lifetime -= deltaTime;
 
             // update data in arrays
             this._particlePositionsCPU.set(pos, i * 3);
@@ -118,7 +126,7 @@ export class Particles {
         }
 
         // update GPU buffers
-        // since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffer has to be destroyed and recreated in order to update it
+        // since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffers have to be destroyed and recreated in order to update it
         this._particleBuffer?.destroy()
         this.createPositionsVertexBuffer(true)
     }
@@ -167,5 +175,11 @@ export class Particles {
         this._gravity = value;
     }
 
+    get maxNumParticlesSpawnPerSecond(): number {
+        return this._maxNumParticlesSpawnPerSecond;
+    }
 
+    set maxNumParticlesSpawnPerSecond(value: number) {
+        this._maxNumParticlesSpawnPerSecond = value;
+    }
 }
