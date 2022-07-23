@@ -35,22 +35,20 @@ fn main(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> Ve
             );
 
             var uvs = array<vec2<f32>, 6>(
-                vec2<f32>(0, 1),   //tl
+                vec2<f32>(0, 1),  //tl
                 vec2<f32>(0, 0),  //bl
-                vec2<f32>(1, 0),   //br
+                vec2<f32>(1, 0),  //br
 
                 vec2<f32>(1, 0),   //br
-                vec2<f32>(1, 1),    //tr
+                vec2<f32>(1, 1),   //tr
                 vec2<f32>(0, 1)    //tl
             );
 
 
+            var transformedPosition : vec4<f32> = camera.viewProjectionMatrix * vec4<f32>(vertexInput.position, 1.0);
+            
             var output: VertexOutput;
-            output.position = camera.viewProjectionMatrix * vec4<f32>(vertexInput.position, 1.0);
-            output.position.x = output.position.x + quadPos[VertexIndex].x;
-            output.position.y = output.position.y + quadPos[VertexIndex].y;
-            //output.position.z = 0.0;
-
+            output.position = vec4<f32>(transformedPosition.x + quadPos[VertexIndex].x, transformedPosition.y + quadPos[VertexIndex].y, 0.0, 1.0);
             output.uv = uvs[VertexIndex];
             return output;
 }

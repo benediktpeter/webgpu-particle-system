@@ -106,8 +106,8 @@ export class Renderer {
             }
         });
 
-        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 100, 100);
-        this.camera = new Camera([0,0,-7], [0,0,0]);
+        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
+        this.camera = new Camera([0,0,-100], [0,0,0]);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,

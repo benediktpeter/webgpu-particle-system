@@ -13,7 +13,7 @@ export class VertexUniformBuffer {
     private _device: GPUDevice;
 
 
-    constructor(device: GPUDevice, canvasHeight: number, canvasWidth: number, height: number = 30, width: number = 30) {
+    constructor(device: GPUDevice, canvasHeight: number, canvasWidth: number, height: number = 5, width: number = 5) {
         if(canvasHeight <= 0 || canvasWidth <= 0) {
             throw new Error("Invalid canvas dimensions")
         }

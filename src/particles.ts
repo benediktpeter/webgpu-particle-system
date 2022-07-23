@@ -6,7 +6,7 @@ export class Particles {
 
     private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
-    private _initialVelocity: number = 1;
+    private _initialVelocity: number = 0.5;
     private _particleLifetime: number = 5;
     private _gravity: vec3 = [0,-0.5,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
