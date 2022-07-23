@@ -8,6 +8,7 @@ import {VertexUniformBuffer} from "./vertexUniformBuffer";
 import {vec3} from "gl-matrix";
 import {Camera} from "./camera";
 import {Particles} from "./particles";
+import {FragmentUniformBuffer} from "./fragmentUniformBuffer";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -20,6 +21,7 @@ export class Renderer {
 
     private format: string = 'bgra8unorm';
     private vertexUniformBuffer : any;
+    private fragmentUniformBuffer: any;
     private uniformBindGroup: any;
 
     private canvasWidth: number = 0;
@@ -28,6 +30,7 @@ export class Renderer {
     private camera? : Camera;
     private cameraUniformBuffer?: GPUBuffer;
     private particleSystem?: Particles;
+
 
 
     calculateDeltaTime(): void {
@@ -107,6 +110,7 @@ export class Renderer {
         });
 
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
+        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0));
         this.camera = new Camera([0,0,-100], [0,0,0]);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
@@ -135,14 +139,21 @@ export class Renderer {
                 {
                     binding: 3,
                     resource: particleTexture.texture.createView()
-                }
-                ,
+                },
                 {
                     binding: 1,
                     resource: {
                         buffer: this.cameraUniformBuffer,
                         offset: 0,
                         size: 16*4
+                    }
+                },
+                {
+                    binding: 4,
+                    resource: {
+                        buffer: (this.fragmentUniformBuffer as FragmentUniformBuffer).uniformBuffer,
+                        offset: 0,
+                        size: (this.fragmentUniformBuffer as FragmentUniformBuffer).bufferSize
                     }
                 }
             ]

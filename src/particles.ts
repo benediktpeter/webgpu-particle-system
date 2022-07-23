@@ -114,7 +114,6 @@ export class Particles {
                 this._particleVelocitiesCPU.set(velocity, i * 3);
                 this._particleLifetimesCPU.set([lifetime], i);
                 continue;
-
             }
 
             // apply gravity to velocity
