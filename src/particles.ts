@@ -83,9 +83,9 @@ export class Particles {
         console.log("GPU particles not yet implemented");
     }
 
-    public update(deltatime : number) : void {
+    public update(deltaTime : number) : void {
         if(this._useCPU)
-            this.updateCPU(deltatime);
+            this.updateCPU(deltaTime);
     }
 
 
@@ -108,6 +108,13 @@ export class Particles {
                 vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
                 lifetime = this._particleLifetime;
                 particlesSpawnedThisFrame++;
+
+                // update data in arrays
+                this._particlePositionsCPU.set(pos, i * 3);
+                this._particleVelocitiesCPU.set(velocity, i * 3);
+                this._particleLifetimesCPU.set([lifetime], i);
+                continue;
+
             }
 
             // apply gravity to velocity

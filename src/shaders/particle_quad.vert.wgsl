@@ -11,7 +11,7 @@ struct Camera {
 @binding(1) @group(0) var<uniform> camera: Camera;
 
 struct VertexInput {
-  @location(0) position : vec3<f32>
+    @location(0) position : vec3<f32>
 };
 
 struct VertexOutput {
