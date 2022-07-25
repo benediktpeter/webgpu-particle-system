@@ -1,4 +1,5 @@
 import {mat4, vec2, vec3, vec4} from 'gl-matrix';
+import {multiplyVec3WithNumber} from "./utils";
 
 export class Particles {
 
@@ -117,10 +118,10 @@ export class Particles {
             }
 
             // apply gravity to velocity
-            velocity = vec3.add(velocity, velocity, Particles.multiplyVec3WithNumber(this.gravity, deltaTime));
+            velocity = vec3.add(velocity, velocity, multiplyVec3WithNumber(this.gravity, deltaTime));
 
             // apply velocity to position
-            vec3.add(pos, pos, Particles.multiplyVec3WithNumber(velocity, deltaTime));
+            vec3.add(pos, pos, multiplyVec3WithNumber(velocity, deltaTime));
 
             // update lifetime
             lifetime -= deltaTime;
@@ -146,11 +147,6 @@ export class Particles {
         if (normalize)
             vec3.normalize(result, result);
         return result;
-    }
-
-    // helper method for multiplying a vec3 with a number
-    private static multiplyVec3WithNumber(vector: vec3, scalar: number): vec3 {
-        return vec3.fromValues(vector[0] * scalar, vector[1] * scalar, vector[2] * scalar);
     }
 
     get numParticles(): number {

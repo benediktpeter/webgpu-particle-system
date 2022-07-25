@@ -9,6 +9,8 @@ import {vec3} from "gl-matrix";
 import {Camera} from "./camera";
 import {Particles} from "./particles";
 import {FragmentUniformBuffer} from "./fragmentUniformBuffer";
+import {ParticleGUI} from "./gui";
+import {vec3FromArray, vec3ToColor} from "./utils";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -21,7 +23,7 @@ export class Renderer {
 
     private format: string = 'bgra8unorm';
     private vertexUniformBuffer : any;
-    private fragmentUniformBuffer: any;
+    private fragmentUniformBuffer?: FragmentUniformBuffer;
     private uniformBindGroup: any;
 
     private canvasWidth: number = 0;
@@ -201,12 +203,23 @@ export class Renderer {
         this.device.queue.submit([commandEncoder.finish()]);
     }
 
-
     public frame() {
         // Note: It likely makes more sense to have a separate update class later
 
         this.calculateDeltaTime();
 
         this.renderTestQuad();
+    }
+
+    public updateData(gui : ParticleGUI): void {
+        if(!this.fragmentUniformBuffer) {
+            throw new Error("Fragment uniform Buffer not defined!")
+        }
+
+        const guiData = gui.guiData;
+
+        const particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
+        this.fragmentUniformBuffer?.setColor(vec3.fromValues(particleColor[0], particleColor[1],particleColor[2]));
+
     }
 }

@@ -24,8 +24,6 @@ export class FragmentUniformBuffer {
     }
 
     public setColor(color: vec3) : void {
-        console.log(this._device)
-
         this._device.queue.writeBuffer(this._uniformBuffer, this.COLOR_OFFSET, color as ArrayBuffer);
     }
 
