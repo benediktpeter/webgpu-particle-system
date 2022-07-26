@@ -212,6 +212,11 @@ export class Renderer {
     }
 
     public updateData(gui : ParticleGUI): void {
+        // update simulation properties
+        this.particleSystem?.updateData(gui);
+
+
+        // update rendering properties
         if(!this.fragmentUniformBuffer) {
             throw new Error("Fragment uniform Buffer not defined!")
         }

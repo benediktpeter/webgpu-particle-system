@@ -1,5 +1,6 @@
 import {mat4, vec2, vec3, vec4} from 'gl-matrix';
 import {multiplyVec3WithNumber} from "./utils";
+import {ParticleGUI} from "./gui";
 
 export class Particles {
 
@@ -87,6 +88,40 @@ export class Particles {
     public update(deltaTime : number) : void {
         if(this._useCPU)
             this.updateCPU(deltaTime);
+    }
+
+    public updateData(gui: ParticleGUI): void {
+        //todo: handle switching between cpu and gpu mode
+
+        if (this._useCPU) {
+            // update number of particles
+            if (gui.guiData.numberOfParticles > this._numParticles) {
+                let newPosArray = new Float32Array(gui.guiData.numberOfParticles * 3);
+                let newVelArray = new Float32Array(gui.guiData.numberOfParticles * 3);
+                let newLifetimeArray = new Float32Array(gui.guiData.numberOfParticles);
+
+                newPosArray.set(this._particlePositionsCPU, 0);
+                newVelArray.set(this._particleVelocitiesCPU, 0);
+                newLifetimeArray.set(this._particleLifetimesCPU, 0);
+
+                this._numParticles = gui.guiData.numberOfParticles;
+                this._particlePositionsCPU = newPosArray;
+                this._particleVelocitiesCPU = newVelArray;
+                this._particleLifetimesCPU = newLifetimeArray;
+
+                console.log("Particle limit increased to " + this._numParticles)
+            } else if (gui.guiData.numberOfParticles < this._numParticles) {
+                this._numParticles = gui.guiData.numberOfParticles;
+                this._particlePositionsCPU = this._particlePositionsCPU.slice(0, 3 * this._numParticles)
+                this._particleVelocitiesCPU = this._particleVelocitiesCPU.slice(0, 3 * this._numParticles)
+                this._particleLifetimesCPU = this._particleLifetimesCPU.slice(0, this._numParticles)
+
+                console.log("Particle limit decreased to " + this._numParticles)
+            }
+
+        } else {
+            console.log("GPU particle simulation not yet implemented.")
+        }
     }
 
 
