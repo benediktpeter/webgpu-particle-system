@@ -94,6 +94,13 @@ export class Particles {
         //todo: handle switching between cpu and gpu mode
 
         if (this._useCPU) {
+            // update particle spawn cap
+            if(this._maxNumParticlesSpawnPerSecond != gui.guiData.particleSpawnsPerSecond) {
+                this._maxNumParticlesSpawnPerSecond = gui.guiData.particleSpawnsPerSecond;
+                console.log("Particle Spawn cap changed to " + this.maxNumParticlesSpawnPerSecond)
+            }
+
+
             // update number of particles
             if (gui.guiData.numberOfParticles > this._numParticles) {
                 let newPosArray = new Float32Array(gui.guiData.numberOfParticles * 3);
@@ -119,6 +126,8 @@ export class Particles {
                 console.log("Particle limit decreased to " + this._numParticles)
             }
 
+
+
         } else {
             console.log("GPU particle simulation not yet implemented.")
         }
@@ -126,7 +135,7 @@ export class Particles {
 
 
     private updateCPU(deltaTime: number) {
-        const maxSpawnsPerFrame = Math.max(this._maxNumParticlesSpawnPerSecond * deltaTime , 1);
+        const maxSpawnsPerFrame = Math.max(this._maxNumParticlesSpawnPerSecond * deltaTime , this._maxNumParticlesSpawnPerSecond == 0 ? 0 : 1);
         let particlesSpawnedThisFrame = 0;
 
         for (let i = 0; i < this._numParticles; i++) {
