@@ -2,9 +2,11 @@ import {mat4, vec2, vec3, vec4} from 'gl-matrix';
 import {multiplyVec3WithNumber} from "./utils";
 import {ParticleGUI} from "./gui";
 
+import simulationComputeShader from './shaders/particle.simulation.wgsl'
+
 export class Particles {
 
-    public static readonly INSTANCE_SIZE = 3*4 //+ 4; // vec3 position, float lifetime
+    public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4;    // vec3 position, float lifetime, vec3 velocity
 
     private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
@@ -14,11 +16,12 @@ export class Particles {
     private _maxNumParticlesSpawnPerSecond: number = 80;
 
     private _device : GPUDevice;
+
     private _particleBuffer? : GPUBuffer;
+    private _simulationPipeline?: GPUComputePipeline;
+    private _simulationBindGroup?: GPUBindGroup;
 
     private _useCPU : boolean;
-
-
     private _particlePositionsCPU : Float32Array = new Float32Array();
     private _particleVelocitiesCPU : Float32Array = new Float32Array();
     private _particleLifetimesCPU : Float32Array = new Float32Array();
@@ -27,7 +30,7 @@ export class Particles {
 
     constructor(device: GPUDevice, useCPU: boolean) {
         if(!useCPU) {
-            throw new Error("GPU particle computation has not been implemented yet.")
+            //throw new Error("GPU particle computation has not been implemented yet.")
         }
         this._device = device;
         this._useCPU = useCPU;
@@ -40,6 +43,8 @@ export class Particles {
     }
 
     private initCPU() : void {
+        console.log("setting up cpu particles")
+
         // spawn all particles at the origin
         this._particlePositionsCPU = new Float32Array(3 * this._numParticles);
         for (let i = 0; i < this._numParticles; i++ ) {
@@ -47,7 +52,7 @@ export class Particles {
         }
 
         // create vertex buffer
-        this.createPositionsVertexBuffer();
+        this.createCPUParticleBuffer();
 
 
         // initialize velocities and lifetimes
@@ -70,7 +75,7 @@ export class Particles {
     }
 
 
-    private createPositionsVertexBuffer(writeData: boolean = false) {
+    private createCPUParticleBuffer(writeData: boolean = false) {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
@@ -81,17 +86,89 @@ export class Particles {
             this._particleBuffer.unmap();
         }
     }
+
+    private createGPUParticleBuffer(/*writeData: boolean = false*/) {
+        this._particleBuffer = this._device.createBuffer({
+            size: this._numParticles * Particles.INSTANCE_SIZE,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE
+        });
+    }
+
     private initGPU() {
-        console.log("GPU particles not yet implemented");
+        console.log("setting up gpu particles");
+
+        this.createGPUParticleBuffer();
+        // todo: create uniform buffer
+
+        // create compute shader pipeline
+        const computePipelineDescr : GPUComputePipelineDescriptor = {
+            layout: 'auto',
+            compute: {
+                module: this._device.createShaderModule({
+                    code: simulationComputeShader
+                }),
+                entryPoint: 'simulate'
+            }
+        }
+        this._simulationPipeline = this._device.createComputePipeline(computePipelineDescr);
+
+        // create compute shader bind group
+        const bindGroupDescr : GPUBindGroupDescriptor = {
+            layout: this._simulationPipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this._particleBuffer as GPUBuffer,
+                        offset: 0,
+                        size: Math.min(this._particleBuffer?.size as number, 256) //todo: look at buffer size
+                    }
+                }
+            ]
+        }
+
+        this._simulationBindGroup = this._device.createBindGroup(bindGroupDescr)
     }
 
     public update(deltaTime : number) : void {
         if(this._useCPU)
             this.updateCPU(deltaTime);
+        else
+            this.updateGPU(deltaTime);
+    }
+
+    private updateGPU(deltaTime: number) : void {
+        if(!this._simulationPipeline) {
+            throw new Error("Simulation pipeline not defined")
+        }
+        if(!this._simulationBindGroup) {
+            throw new Error("Simulation bind group not defined")
+        }
+
+        //todo: update uniform data
+
+
+        // compute pass
+        const commandEncoder = this._device.createCommandEncoder();
+        const passEncoder = commandEncoder.beginComputePass();
+        passEncoder.setPipeline(this._simulationPipeline);
+        passEncoder.setBindGroup(0, this._simulationBindGroup)
+        passEncoder.dispatchWorkgroups(Math.min(256, Math.ceil(this._numParticles / 256))) //todo: check about this number stuff
+        passEncoder.end();
     }
 
     public updateData(gui: ParticleGUI): void {
-        //todo: handle switching between cpu and gpu mode
+
+        // handle switching between cpu and gpu modes
+        if (gui.guiData.useCPU != this._useCPU) {
+            this._useCPU = gui.guiData.useCPU;
+            if (this._useCPU) {
+                this.initCPU()
+            }
+            else {
+                this.initGPU()
+            }
+        }
 
         if (this._useCPU) {
             // update particle spawn cap
@@ -129,7 +206,7 @@ export class Particles {
 
 
         } else {
-            console.log("GPU particle simulation not yet implemented.")
+            //todo: implement
         }
     }
 
@@ -179,7 +256,7 @@ export class Particles {
         // update GPU buffers
         // since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffers have to be destroyed and recreated in order to update it
         this._particleBuffer?.destroy()
-        this.createPositionsVertexBuffer(true)
+        this.createCPUParticleBuffer(true)
     }
 
     private static getRandomVec3(normalize: boolean = false) {

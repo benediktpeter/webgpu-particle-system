@@ -13,7 +13,7 @@ function frame() {
 
 function setupAndRenderTestQuad() {
     renderer.initCheck()
-        .then(() => renderer.initRenderer()
+        .then(() => renderer.initRenderer(gui.guiData.useCPU)
             .then(() => requestAnimationFrame(frame))
         );
 }
@@ -22,5 +22,6 @@ setupAndRenderTestQuad()
 
 
 window.addEventListener('resize', function() {
+    console.log("resizing window")
     setupAndRenderTestQuad()
 });

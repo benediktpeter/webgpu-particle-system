@@ -3,7 +3,8 @@ import * as dat from 'dat.gui';
 export class ParticleGUI {
     gui = new dat.GUI();
     private _guiData = {
-        //message: "Hello World!",
+        useCPU: false,
+
         particleColor: [255,0,255], //alpha?
 
         numberOfParticles: 1000,
@@ -12,6 +13,8 @@ export class ParticleGUI {
 
     constructor() {
         this.gui.remember(this._guiData);
+
+        this.gui.add(this._guiData, "useCPU");
 
         this.gui.add(this._guiData, 'numberOfParticles');
         this.gui.add(this._guiData, 'particleSpawnsPerSecond')

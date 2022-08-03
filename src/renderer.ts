@@ -1,7 +1,7 @@
 import {CheckWebGPU} from "./helper";
 
 import quadFragmentShader from './shaders/quad.frag.wgsl'
-import fullScreenQuadVertexShader from './shaders/particle_quad.vert.wgsl'
+import particleQuadVertexShader from './shaders/particle_quad.vert.wgsl'
 
 import {loadTexture} from "./textures";
 import {VertexUniformBuffer} from "./vertexUniformBuffer";
@@ -19,7 +19,7 @@ export class Renderer {
     device: any;
     context: any;
 
-    testQuadPipeline: any;
+    particleRenderPipeline: any;
 
     private format: string = 'bgra8unorm';
     private vertexUniformBuffer : any;
@@ -38,7 +38,7 @@ export class Renderer {
     calculateDeltaTime(): void {
         if (!this.lastTime) {
             this.lastTime = performance.now();
-            this.deltaTime = 0.0; // set to 1/maxframerate instead?
+            this.deltaTime = 0.0;
             return;
         }
         const currentTime = performance.now();
@@ -56,7 +56,7 @@ export class Renderer {
         }
     }
 
-    public initRenderer = async () => {
+    public initRenderer = async (useCPU: boolean = false) => {
         const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
@@ -70,15 +70,15 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
-        await this.initTestQuadPipeline()
+        await this.initParticleRenderingPipeline()
     }
 
-    public async initTestQuadPipeline() {
-        this.testQuadPipeline = this.device.createRenderPipeline({
+    public async initParticleRenderingPipeline(useCPU: boolean = false) {
+        this.particleRenderPipeline = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
                 module: this.device.createShaderModule({
-                    code: fullScreenQuadVertexShader
+                    code: particleQuadVertexShader
                 }),
                 entryPoint: "main",
                 buffers: [
@@ -120,11 +120,11 @@ export class Renderer {
         });
         this.writeCameraBuffer();
 
-        this.particleSystem = new Particles(this.device, true);
+        this.particleSystem = new Particles(this.device, useCPU);
 
         const particleTexture = await loadTexture(this.device, "1x1-white.png");
         this.uniformBindGroup = this.device.createBindGroup({
-            layout: this.testQuadPipeline.getBindGroupLayout(0),
+            layout: this.particleRenderPipeline.getBindGroupLayout(0),
             entries: [
                 {
                     binding: 0,
@@ -172,14 +172,14 @@ export class Renderer {
         this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
     }
 
-    public renderTestQuad() {
-        //update particles
+    public renderParticles() {
+        // update particles
         this.particleSystem?.update(this.deltaTime);
 
-        //update uniforms
+        // update uniforms
         this.writeCameraBuffer()
 
-        //render
+        // render
         const commandEncoder = this.device.createCommandEncoder();
         const textureView = this.context.getCurrentTexture().createView();
         const renderPass = commandEncoder.beginRenderPass({
@@ -190,7 +190,7 @@ export class Renderer {
                 storeOp: 'store'
             }]
         });
-        renderPass.setPipeline(this.testQuadPipeline);
+        renderPass.setPipeline(this.particleRenderPipeline);
         renderPass.setBindGroup(0, this.uniformBindGroup as GPUBindGroup);
         if(this.particleSystem)
             renderPass.setVertexBuffer(0, this.particleSystem.particleBuffer);
@@ -208,7 +208,7 @@ export class Renderer {
 
         this.calculateDeltaTime();
 
-        this.renderTestQuad();
+        this.renderParticles();
     }
 
     public updateData(gui : ParticleGUI): void {
