@@ -6,7 +6,7 @@ import simulationComputeShader from './shaders/particle.simulation.wgsl'
 
 export class Particles {
 
-    public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4;    // vec3 position, float lifetime, vec3 velocity
+    public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4;    // vec3 position, float lifetime, vec3 velocity, padding
 
     private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
@@ -100,6 +100,7 @@ export class Particles {
         this.createGPUParticleBuffer();
         // todo: create uniform buffer
 
+
         // create compute shader pipeline
         const computePipelineDescr : GPUComputePipelineDescriptor = {
             layout: 'auto',
@@ -121,7 +122,7 @@ export class Particles {
                     resource: {
                         buffer: this._particleBuffer as GPUBuffer,
                         offset: 0,
-                        size: Math.min(this._particleBuffer?.size as number, 256) //todo: look at buffer size
+                        size: this._particleBuffer?.size
                     }
                 }
             ]
@@ -153,8 +154,11 @@ export class Particles {
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(this._simulationPipeline);
         passEncoder.setBindGroup(0, this._simulationBindGroup)
-        passEncoder.dispatchWorkgroups(Math.min(256, Math.ceil(this._numParticles / 256))) //todo: check about this number stuff
+        //passEncoder.dispatchWorkgroups(Math.min(256, Math.ceil(this._numParticles / 256))) //todo: check about this number stuff
+        passEncoder.dispatchWorkgroups(this._numParticles / 256)
         passEncoder.end();
+
+        this._device.queue.submit([commandEncoder.finish()])
     }
 
     public updateData(gui: ParticleGUI): void {
