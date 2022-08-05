@@ -1,3 +1,12 @@
+fn randUnitVec3(seed: f32, idx: f32) -> vec3<f32> {
+    var result = vec3<f32>(0,0,0);
+    result.x = f32(sin(seed + (idx*idx)));
+    result.y = cos(seed + (idx*idx*idx));
+    result.z = cos(seed*seed + idx*idx);
+    return normalize(result);
+}
+
+
 struct Particle {
     position: vec3<f32>,
     lifetime: f32,
@@ -13,40 +22,27 @@ struct SimulationParams {
     gravity: vec3<f32>,
     origin: vec3<f32>,
     lifetime: f32,
-    initialVelocity: f32
+    initialVelocity: f32,
+    randSeed: f32
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
-//todo: uniform buffer "params"
+@binding(1) @group(0) var<uniform> params : SimulationParams;
 
 @compute @workgroup_size(256)
 fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
-    // hardcoded uniforms, todo: replace with actual uniform buffer later
-    var params : SimulationParams;
-    params.deltaTime = 1.0 / 60.0;
-    params.gravity = vec3<f32>(0,-1,0);
-    params.origin = vec3<f32>(0,0,0);
-    params.lifetime = 5;
-    params.initialVelocity = 0.01;
-
-
     let idx = GlobalInvocationID.x;
 
     // load particle from buffer
     var particle = data.particles[idx];
 
-
+    //reset expired particles
     if (particle.lifetime <= 0) {
         particle.lifetime = 5;
-        particle.position = params.origin;
+        particle.position = params.origin * 0.01;
 
         particle.velocity = vec3<f32>(0,0,0);
-        //todo: random velocity
-        /*particle.velocity.x = sin(f32(idx));
-        particle.velocity.y = cos(f32(idx));
-        particle.velocity.z = cos(f32(idx)*3);*/
-
-        //particle.velocity = normalize(particle.velocity + vec3<f32>(0,-0.00000001,0)) * params.initialVelocity;
+        particle.velocity = randUnitVec3(params.randSeed, f32(idx)) * params.initialVelocity;
 
     }
 

@@ -3,6 +3,7 @@ import {multiplyVec3WithNumber} from "./utils";
 import {ParticleGUI} from "./gui";
 
 import simulationComputeShader from './shaders/particle.simulation.wgsl'
+import {SimulationUniformBuffer} from "./simulationUniformBuffer";
 
 export class Particles {
 
@@ -15,10 +16,11 @@ export class Particles {
     private _gravity: vec3 = [0,-0.5,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
 
-    private _device : GPUDevice;
+    private readonly _device : GPUDevice;
 
     private _particleBuffer? : GPUBuffer;
     private _simulationPipeline?: GPUComputePipeline;
+    private _simulationUniformBuffer?: SimulationUniformBuffer;
     private _simulationBindGroup?: GPUBindGroup;
 
     private _useCPU : boolean;
@@ -29,9 +31,6 @@ export class Particles {
 
 
     constructor(device: GPUDevice, useCPU: boolean) {
-        if(!useCPU) {
-            //throw new Error("GPU particle computation has not been implemented yet.")
-        }
         this._device = device;
         this._useCPU = useCPU;
 
@@ -98,7 +97,7 @@ export class Particles {
         console.log("setting up gpu particles");
 
         this.createGPUParticleBuffer();
-        // todo: create uniform buffer
+        this._simulationUniformBuffer = new SimulationUniformBuffer(this._device);
 
 
         // create compute shader pipeline
@@ -112,6 +111,7 @@ export class Particles {
             }
         }
         this._simulationPipeline = this._device.createComputePipeline(computePipelineDescr);
+        console.log(this._simulationPipeline.getBindGroupLayout(0))
 
         // create compute shader bind group
         const bindGroupDescr : GPUBindGroupDescriptor = {
@@ -123,6 +123,14 @@ export class Particles {
                         buffer: this._particleBuffer as GPUBuffer,
                         offset: 0,
                         size: this._particleBuffer?.size
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: this._simulationUniformBuffer.uniformBuffer,
+                        offset: 0,
+                        size: this._simulationUniformBuffer.bufferSize
                     }
                 }
             ]
@@ -146,16 +154,21 @@ export class Particles {
             throw new Error("Simulation bind group not defined")
         }
 
-        //todo: update uniform data
-
+        // update uniform data
+        this._simulationUniformBuffer?.setDeltaTime(deltaTime);
+        this._simulationUniformBuffer?.setLifetime(this._particleLifetime);
+        this._simulationUniformBuffer?.setGravity(this._gravity);
+        this._simulationUniformBuffer?.setOrigin(this._originPos);
+        this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
+        const seed = (Math.random()- 0.5) * 2;
+        this._simulationUniformBuffer?.setRandSeed(seed);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(this._simulationPipeline);
         passEncoder.setBindGroup(0, this._simulationBindGroup)
-        //passEncoder.dispatchWorkgroups(Math.min(256, Math.ceil(this._numParticles / 256))) //todo: check about this number stuff
-        passEncoder.dispatchWorkgroups(this._numParticles / 256)
+        passEncoder.dispatchWorkgroups(Math.ceil(this._numParticles / 256))
         passEncoder.end();
 
         this._device.queue.submit([commandEncoder.finish()])
@@ -206,8 +219,6 @@ export class Particles {
 
                 console.log("Particle limit decreased to " + this._numParticles)
             }
-
-
 
         } else {
             //todo: implement
