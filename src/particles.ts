@@ -12,7 +12,8 @@ export class Particles {
     private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
     private _initialVelocity: number = 0.5;
-    private _particleLifetime: number = 5;
+    private _minParticleLifetime: number = 2;
+    private _maxParticleLifetime: number = 5;
     private _gravity: vec3 = [0,-0.5,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
 
@@ -111,7 +112,6 @@ export class Particles {
             }
         }
         this._simulationPipeline = this._device.createComputePipeline(computePipelineDescr);
-        console.log(this._simulationPipeline.getBindGroupLayout(0))
 
         // create compute shader bind group
         const bindGroupDescr : GPUBindGroupDescriptor = {
@@ -156,7 +156,8 @@ export class Particles {
 
         // update uniform data
         this._simulationUniformBuffer?.setDeltaTime(deltaTime);
-        this._simulationUniformBuffer?.setLifetime(this._particleLifetime);
+        this._simulationUniformBuffer?.setMinLifetime(this._minParticleLifetime);
+        this._simulationUniformBuffer?.setMaxLifetime(this._maxParticleLifetime);
         this._simulationUniformBuffer?.setGravity(this._gravity);
         this._simulationUniformBuffer?.setOrigin(this._originPos);
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
@@ -187,14 +188,11 @@ export class Particles {
             }
         }
 
+        // setting data that does not affect overall gpu and cpu pipeline
+        this._minParticleLifetime = gui.guiData.minParticleLifetime;
+        this._maxParticleLifetime = gui.guiData.maxParticleLifetime;
+
         if (this._useCPU) {
-            // update particle spawn cap
-            if(this._maxNumParticlesSpawnPerSecond != gui.guiData.particleSpawnsPerSecond) {
-                this._maxNumParticlesSpawnPerSecond = gui.guiData.particleSpawnsPerSecond;
-                console.log("Particle Spawn cap changed to " + this.maxNumParticlesSpawnPerSecond)
-            }
-
-
             // update number of particles
             if (gui.guiData.numberOfParticles > this._numParticles) {
                 let newPosArray = new Float32Array(gui.guiData.numberOfParticles * 3);
@@ -221,7 +219,9 @@ export class Particles {
             }
 
         } else {
-            //todo: implement
+
+
+
         }
     }
 
@@ -243,8 +243,8 @@ export class Particles {
                 pos = this._originPos;
                 velocity = Particles.getRandomVec3(true)
                 vec3.scale(velocity, velocity, this._initialVelocity);  // set length to initial velocity
-                lifetime = this._particleLifetime;
-                particlesSpawnedThisFrame++;
+                lifetime = this._minParticleLifetime + Math.random() * (this._maxParticleLifetime - this._minParticleLifetime);
+                //particlesSpawnedThisFrame++;
 
                 // update data in arrays
                 this._particlePositionsCPU.set(pos, i * 3);

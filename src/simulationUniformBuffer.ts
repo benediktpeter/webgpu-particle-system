@@ -5,13 +5,14 @@ export class SimulationUniformBuffer {
     private readonly _uniformBuffer : GPUBuffer;
     private _device: GPUDevice;
 
-    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4;    // f deltatime, v3 gravity, v3 origin, f lifetime, f initialVelocity, f seed
+    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4;    // f deltatime, v3 gravity, v3 origin, f lifetime * 2, f initialVelocity, f seed
 
     private readonly DELTATIME_OFFSET = 0;
     private readonly GRAVITY_OFFSET = 16; //4+12 (align 16)
     private readonly ORIGIN_OFFSET = 32;
-    private readonly LIFETIME_OFFSET = this.ORIGIN_OFFSET + 3*4;
-    private readonly INITIAL_VELOCITY_OFFSET = this.LIFETIME_OFFSET + 4;
+    private readonly MIN_LIFETIME_OFFSET = this.ORIGIN_OFFSET + 3*4;
+    private readonly MAX_LIFETIME_OFFSET = this.MIN_LIFETIME_OFFSET + 4;
+    private readonly INITIAL_VELOCITY_OFFSET = this.MAX_LIFETIME_OFFSET + 4;
     private readonly RAND_SEED_OFFSET = this.INITIAL_VELOCITY_OFFSET + 4;
 
 
@@ -45,8 +46,12 @@ export class SimulationUniformBuffer {
         this._device.queue.writeBuffer(this._uniformBuffer, this.ORIGIN_OFFSET, Float32Array.from(origin) as ArrayBuffer);
     }
 
-    public setLifetime(lifetime: number) : void {
-        this._device.queue.writeBuffer(this._uniformBuffer, this.LIFETIME_OFFSET, Float32Array.of(lifetime));
+    public setMinLifetime(minLifetime: number) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.MIN_LIFETIME_OFFSET, Float32Array.of(minLifetime));
+    }
+
+    public setMaxLifetime(maxLifetime: number) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.MAX_LIFETIME_OFFSET, Float32Array.of(maxLifetime));
     }
 
     public setInitialVelocity(initialVelocity: number) : void {

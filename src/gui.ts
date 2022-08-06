@@ -8,7 +8,8 @@ export class ParticleGUI {
         particleColor: [255,0,255], //alpha?
 
         numberOfParticles: 1000,
-        particleSpawnsPerSecond: 80
+        minParticleLifetime: 1,
+        maxParticleLifetime: 5
     }
 
     constructor() {
@@ -17,7 +18,9 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "useCPU");
 
         this.gui.add(this._guiData, 'numberOfParticles');
-        this.gui.add(this._guiData, 'particleSpawnsPerSecond')
+        this.gui.add(this._guiData, 'minParticleLifetime')
+        this.gui.add(this._guiData, 'maxParticleLifetime')
+
 
         this.gui.addColor(this._guiData, 'particleColor');
     }
