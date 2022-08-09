@@ -1,4 +1,5 @@
 import * as dat from 'dat.gui';
+import {Particles} from "./particles";
 
 export class ParticleGUI {
     gui = new dat.GUI();
@@ -27,6 +28,12 @@ export class ParticleGUI {
 
 
     get guiData() {
+        if (this._guiData.numberOfParticles * Particles.INSTANCE_SIZE > 0x7FFFFFF)
+        {
+            window.alert("Too many particles. Maximum number of particles: " + Math.floor(0x7FFFFFF / 32));
+            this._guiData.numberOfParticles = 10000;
+        }
+
         return this._guiData;
     }
 }

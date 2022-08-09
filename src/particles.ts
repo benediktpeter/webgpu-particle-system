@@ -87,10 +87,10 @@ export class Particles {
         }
     }
 
-    private createGPUParticleBuffer(/*writeData: boolean = false*/) {
+    private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
     }
 
@@ -114,7 +114,14 @@ export class Particles {
         this._simulationPipeline = this._device.createComputePipeline(computePipelineDescr);
 
         // create compute shader bind group
-        const bindGroupDescr : GPUBindGroupDescriptor = {
+        this.createSimulationBindGroup();
+    }
+
+    private createSimulationBindGroup() {
+        if(!this._simulationPipeline || !this._simulationUniformBuffer) {
+            throw new Error("simulation pipeline or uniform buffer not defined")
+        }
+        const bindGroupDescr: GPUBindGroupDescriptor = {
             layout: this._simulationPipeline.getBindGroupLayout(0),
             entries: [
                 {
@@ -135,7 +142,6 @@ export class Particles {
                 }
             ]
         }
-
         this._simulationBindGroup = this._device.createBindGroup(bindGroupDescr)
     }
 
@@ -220,8 +226,25 @@ export class Particles {
 
         } else {
 
+            if (gui.guiData.numberOfParticles != this._numParticles) {
+                let oldParticleBuffer = this._particleBuffer;
+                const oldNumParticles = this._numParticles
+                this._numParticles = gui.guiData.numberOfParticles;
+                this.createGPUParticleBuffer()  //create a new buffer of the correct length
 
+                if (oldParticleBuffer && this._particleBuffer) {
+                    // copy data from the old buffer to the new one
+                    const commandEncoder = this._device.createCommandEncoder();
+                    commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
+                    this._device.queue.submit([commandEncoder.finish()])
+                } else {
+                    throw new Error("Particle Buffer now defined");
+                }
 
+                oldParticleBuffer?.destroy()    // destroy the old buffer
+
+                this.createSimulationBindGroup() // recreate the bind group
+            }
         }
     }
 
