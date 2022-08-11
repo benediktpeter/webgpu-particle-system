@@ -92,6 +92,12 @@ export class Renderer {
                                 shaderLocation: 0,
                                 offset: 0,
                                 format: 'float32x3',
+                            },
+                            {
+                                // lifetime
+                                shaderLocation: 1,
+                                offset: 3*4,
+                                format: 'float32'
                             }
                         ],
                     }
@@ -112,7 +118,7 @@ export class Renderer {
         });
 
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
-        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0));
+        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0);
         this.camera = new Camera([0,0,-100], [0,0,0]);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
@@ -225,6 +231,8 @@ export class Renderer {
 
         const particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
         this.fragmentUniformBuffer?.setColor(vec3.fromValues(particleColor[0], particleColor[1],particleColor[2]));
+        const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
+        this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
 
     }
 }

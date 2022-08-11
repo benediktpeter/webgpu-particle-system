@@ -6,7 +6,8 @@ export class ParticleGUI {
     private _guiData = {
         useCPU: false,
 
-        particleColor: [255,0,255], //alpha?
+        particleColor2: [252,118,39, 255],
+        particleColor: [230,220,155,255],
 
         numberOfParticles: 1000,
         minParticleLifetime: 1,
@@ -24,6 +25,7 @@ export class ParticleGUI {
 
 
         this.gui.addColor(this._guiData, 'particleColor');
+        this.gui.addColor(this._guiData, 'particleColor2');
     }
 
 

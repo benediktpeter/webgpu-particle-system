@@ -11,12 +11,14 @@ struct Camera {
 @binding(1) @group(0) var<uniform> camera: Camera;
 
 struct VertexInput {
-    @location(0) position : vec3<f32>
+    @location(0) position : vec3<f32>,
+    @location(1) lifetime :f32
 };
 
 struct VertexOutput {
     @builtin(position) position : vec4<f32>,
-    @location(0) uv: vec2<f32>
+    @location(0) uv: vec2<f32>,
+    @location(1) lifetime: f32
 };
 
 @vertex
@@ -50,5 +52,6 @@ fn main(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> Ve
             var output: VertexOutput;
             output.position = vec4<f32>(transformedPosition.x + quadPos[VertexIndex].x, transformedPosition.y + quadPos[VertexIndex].y, 0.0, 1.0);
             output.uv = uvs[VertexIndex];
+            output.lifetime = vertexInput.lifetime;
             return output;
 }
