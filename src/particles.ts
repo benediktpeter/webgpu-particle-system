@@ -11,7 +11,7 @@ export class Particles {
 
     private _numParticles = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
-    private _initialVelocity: number = 0.5;
+    private _initialVelocity: number = 1.0;
     private _minParticleLifetime: number = 2;
     private _maxParticleLifetime: number = 5;
     private _gravity: vec3 = [0,-0.5,0]

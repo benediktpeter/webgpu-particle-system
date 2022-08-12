@@ -50,7 +50,7 @@ fn main(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> Ve
             var transformedPosition : vec4<f32> = camera.viewProjectionMatrix * vec4<f32>(vertexInput.position, 1.0);
             
             var output: VertexOutput;
-            output.position = vec4<f32>(transformedPosition.x + quadPos[VertexIndex].x, transformedPosition.y + quadPos[VertexIndex].y, 0.0, 1.0);
+            output.position = vec4<f32>(transformedPosition.x + quadPos[VertexIndex].x, transformedPosition.y + quadPos[VertexIndex].y, transformedPosition.z, 1.0);
             output.uv = uvs[VertexIndex];
             output.lifetime = vertexInput.lifetime;
             return output;

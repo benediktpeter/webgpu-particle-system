@@ -6,11 +6,11 @@ import particleQuadVertexShader from './shaders/particle_quad.vert.wgsl'
 import {loadTexture} from "./textures";
 import {VertexUniformBuffer} from "./vertexUniformBuffer";
 import {vec3} from "gl-matrix";
-import {Camera} from "./camera";
 import {Particles} from "./particles";
 import {FragmentUniformBuffer} from "./fragmentUniformBuffer";
 import {ParticleGUI} from "./gui";
 import {vec3FromArray, vec3ToColor} from "./utils";
+import {OrbitCamera} from "./orbitCamera";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -29,10 +29,10 @@ export class Renderer {
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
 
-    private camera? : Camera;
+    //private camera? : Camera;
+    private camera?: OrbitCamera;
     private cameraUniformBuffer?: GPUBuffer;
     private particleSystem?: Particles;
-
 
 
     calculateDeltaTime(): void {
@@ -119,7 +119,7 @@ export class Renderer {
 
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
         this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0);
-        this.camera = new Camera([0,0,-100], [0,0,0]);
+        this.camera = new OrbitCamera([0,0,-1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
