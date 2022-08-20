@@ -11,6 +11,7 @@ import {FragmentUniformBuffer} from "./fragmentUniformBuffer";
 import {ParticleGUI} from "./gui";
 import {vec3FromArray, vec3ToColor} from "./utils";
 import {OrbitCamera} from "./orbitCamera";
+import {FpsCounter} from "./fpsCounter";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -29,22 +30,23 @@ export class Renderer {
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
 
-    //private camera? : Camera;
     private camera?: OrbitCamera;
     private cameraUniformBuffer?: GPUBuffer;
     private particleSystem?: Particles;
 
+    private fpsCounter?: FpsCounter;
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
             this.lastTime = performance.now();
             this.deltaTime = 0.0;
+            this.fpsCounter = new FpsCounter();
             return;
         }
         const currentTime = performance.now();
         this.deltaTime = (currentTime - this.lastTime) / 1000.0
         this.lastTime = currentTime;
-
+        this.fpsCounter?.update()
     }
 
     public initCheck = async () => {
@@ -169,15 +171,6 @@ export class Renderer {
 
     }
 
-    //this should probably be moved into the camera class
-    private writeCameraBuffer() {
-        if(!this.camera) {
-            throw new Error("renderer.camera not defined!")
-        }
-        const cameraMat = new Float32Array([...this.camera.getViewProjectionMatrix()]);
-        this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
-    }
-
     public renderParticles() {
         // update particles
         this.particleSystem?.update(this.deltaTime);
@@ -234,5 +227,14 @@ export class Renderer {
         const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
 
+    }
+
+    //this should probably be moved into the camera class
+    private writeCameraBuffer() {
+        if(!this.camera) {
+            throw new Error("renderer.camera not defined!")
+        }
+        const cameraMat = new Float32Array([...this.camera.getViewProjectionMatrix()]);
+        this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
     }
 }

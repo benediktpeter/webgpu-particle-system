@@ -1,4 +1,4 @@
-import "./site.css";
+import "../dist/site.css";
 import {Renderer} from "./renderer";
 import {ParticleGUI} from "./gui";
 
