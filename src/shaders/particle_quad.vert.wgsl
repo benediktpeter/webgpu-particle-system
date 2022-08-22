@@ -7,8 +7,19 @@ struct Camera {
     viewProjectionMatrix: mat4x4<f32>
 };
 
+struct Particle {
+    position: vec3<f32>,
+    lifetime: f32,
+    velocity: vec3<f32>
+}
+
+struct Particles {
+  particles : array<Particle>
+};
+
 @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 @binding(1) @group(0) var<uniform> camera: Camera;
+@binding(0) @group(1) var<storage, read> particleBuffer : Particles;
 
 struct VertexInput {
     @location(0) position : vec3<f32>,
@@ -22,7 +33,21 @@ struct VertexOutput {
 };
 
 @vertex
-fn main(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
+fn main_instancing(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
+    return mainVert(vertexInput.position, vertexInput.lifetime, VertexIndex);
+}
+
+
+@vertex
+fn main_vertex_pulling(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+    let particleIdx = u32(vertexIndex/6);
+    let quadIdx = vertexIndex % 6;
+    let particle = particleBuffer.particles[particleIdx];
+
+    return mainVert(particle.position, particle.lifetime, quadIdx);
+}
+
+fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> VertexOutput {
             var halfwidth = uniforms.halfwidth;
             var halfheight = uniforms.halfheight;
 
@@ -47,11 +72,11 @@ fn main(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> Ve
             );
 
 
-            var transformedPosition : vec4<f32> = camera.viewProjectionMatrix * vec4<f32>(vertexInput.position, 1.0);
-            
+            var transformedPosition : vec4<f32> = camera.viewProjectionMatrix * vec4<f32>(particlePos, 1.0);
+
             var output: VertexOutput;
-            output.position = vec4<f32>(transformedPosition.x + quadPos[VertexIndex].x, transformedPosition.y + quadPos[VertexIndex].y, transformedPosition.z, 1.0);
-            output.uv = uvs[VertexIndex];
-            output.lifetime = vertexInput.lifetime;
+            output.position = vec4<f32>(transformedPosition.x + quadPos[quadVertIdx].x, transformedPosition.y + quadPos[quadVertIdx].y, transformedPosition.z, 1.0);
+            output.uv = uvs[quadVertIdx];
+            output.lifetime = particleLifetime;
             return output;
 }

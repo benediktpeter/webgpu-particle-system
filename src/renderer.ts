@@ -20,12 +20,15 @@ export class Renderer {
     device: any;
     context: any;
 
-    particleRenderPipeline: any;
+    particleRenderPipelineInstancing: any;
+    particleRenderPipelineVertexPulling?: GPURenderPipeline;
 
     private format: string = 'bgra8unorm';
     private vertexUniformBuffer : any;
     private fragmentUniformBuffer?: FragmentUniformBuffer;
     private uniformBindGroup: any;
+    private uniformBindGroupVP: any;    //todo: move this to the Particles class and recreate it there whenever the buffer is resized
+    private particleBufferBindGroup?: GPUBindGroup;
 
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
@@ -35,6 +38,7 @@ export class Renderer {
     private particleSystem?: Particles;
 
     private fpsCounter?: FpsCounter;
+
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -76,13 +80,13 @@ export class Renderer {
     }
 
     public async initParticleRenderingPipeline(useCPU: boolean = false) {
-        this.particleRenderPipeline = this.device.createRenderPipeline({
+        this.particleRenderPipelineInstancing = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
                 module: this.device.createShaderModule({
                     code: particleQuadVertexShader
                 }),
-                entryPoint: "main",
+                entryPoint: "main_instancing",
                 buffers: [
                     {
                         // instanced particles buffer
@@ -119,6 +123,34 @@ export class Renderer {
             }
         });
 
+
+        this.particleRenderPipelineVertexPulling = this.device.createRenderPipeline({
+            layout: "auto",
+            vertex: {
+                module: this.device.createShaderModule({
+                    code: particleQuadVertexShader
+                }),
+                entryPoint: "main_vertex_pulling"
+            },
+            fragment: {
+                module: this.device.createShaderModule({
+                    code: quadFragmentShader
+                }),
+                entryPoint: "main",
+                targets: [{
+                    format: this.format
+                }]
+            },
+            primitive: {
+                topology: "triangle-list"
+            }
+        });
+
+        if(!this.particleRenderPipelineVertexPulling) {
+            throw new Error("Vertex Pulling Pipeline creation failed.")
+        }
+
+
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
         this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0);
         this.camera = new OrbitCamera([0,0,-1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
@@ -132,7 +164,7 @@ export class Renderer {
 
         const particleTexture = await loadTexture(this.device, "1x1-white.png");
         this.uniformBindGroup = this.device.createBindGroup({
-            layout: this.particleRenderPipeline.getBindGroupLayout(0),
+            layout: this.particleRenderPipelineInstancing.getBindGroupLayout(0),
             entries: [
                 {
                     binding: 0,
@@ -169,6 +201,58 @@ export class Renderer {
             ]
         });
 
+        //todo: extract this into separate method
+        this.uniformBindGroupVP = this.device.createBindGroup({
+            layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: (this.vertexUniformBuffer as VertexUniformBuffer).uniformBuffer,
+                        offset: 0,
+                        size: (this.vertexUniformBuffer as VertexUniformBuffer).bufferSize
+                    }
+                },
+                {
+                    binding: 2,
+                    resource: particleTexture.sampler
+                },
+                {
+                    binding: 3,
+                    resource: particleTexture.texture.createView()
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: this.cameraUniformBuffer,
+                        offset: 0,
+                        size: 16*4
+                    }
+                },
+                {
+                    binding: 4,
+                    resource: {
+                        buffer: (this.fragmentUniformBuffer as FragmentUniformBuffer).uniformBuffer,
+                        offset: 0,
+                        size: (this.fragmentUniformBuffer as FragmentUniformBuffer).bufferSize
+                    }
+                }
+            ]
+        });
+
+        this.particleBufferBindGroup = this.device.createBindGroup({
+            layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(1),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.particleSystem.particleBuffer as GPUBuffer,
+                        offset: 0,
+                        size: this.particleSystem.particleBuffer?.size  //todo: change to max buffer size?
+                    }
+                }
+            ]
+        })
     }
 
     public renderParticles() {
@@ -189,15 +273,25 @@ export class Renderer {
                 storeOp: 'store'
             }]
         });
-        renderPass.setPipeline(this.particleRenderPipeline);
-        renderPass.setBindGroup(0, this.uniformBindGroup as GPUBindGroup);
-        if(this.particleSystem)
-            renderPass.setVertexBuffer(0, this.particleSystem.particleBuffer);
-        else
-            console.log("particle system not setup");
+        if (!this.particleSystem) {
+            throw new Error("particle system not setup");
+        }
 
-        renderPass.draw(6, this.particleSystem?.numParticles, 0, 0);
-        renderPass.end();
+        if(false) {
+            renderPass.setPipeline(this.particleRenderPipelineInstancing);
+            renderPass.setBindGroup(0, this.uniformBindGroup as GPUBindGroup);
+            // @ts-ignore
+            renderPass.setVertexBuffer(0, this.particleSystem.particleBuffer);
+            renderPass.draw(6, this.particleSystem?.numParticles, 0, 0);
+            renderPass.end();
+        } else {
+            renderPass.setPipeline(this.particleRenderPipelineVertexPulling);
+            renderPass.setBindGroup(0, this.uniformBindGroupVP as GPUBindGroup);
+            renderPass.setBindGroup(1, this.particleBufferBindGroup as GPUBindGroup);
+
+            renderPass.draw(<number>this.particleSystem?.numParticles * 6, 1, 0, 0);
+            renderPass.end();
+        }
 
         this.device.queue.submit([commandEncoder.finish()]);
     }

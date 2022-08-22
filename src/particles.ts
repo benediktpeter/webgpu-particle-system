@@ -9,7 +9,7 @@ export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4;    // vec3 position, float lifetime, vec3 velocity, padding
 
-    private _numParticles = 1000;
+    private _numParticles: number = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
     private _initialVelocity: number = 1.0;
     private _minParticleLifetime: number = 2;
