@@ -22,6 +22,7 @@ export class Renderer {
 
     particleRenderPipelineInstancing: any;
     particleRenderPipelineVertexPulling?: GPURenderPipeline;
+    useVertexPulling: boolean = true;
 
     private format: string = 'bgra8unorm';
     private vertexUniformBuffer : any;
@@ -285,7 +286,7 @@ export class Renderer {
             throw new Error("particle system not setup");
         }
 
-        if(false) {
+        if(!this.useVertexPulling) {
             renderPass.setPipeline(this.particleRenderPipelineInstancing);
             renderPass.setBindGroup(0, this.uniformBindGroup as GPUBindGroup);
             // @ts-ignore
@@ -333,6 +334,8 @@ export class Renderer {
         this.fragmentUniformBuffer?.setColor(vec3.fromValues(particleColor[0], particleColor[1],particleColor[2]));
         const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
+
+        this.useVertexPulling = guiData.vertexPulling;
 
     }
 
