@@ -26,8 +26,6 @@ export class VertexUniformBuffer {
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
-
-        //this.setPosition(position);
         this.setHeight(height);
         this.setWidth(width);
     }
@@ -51,11 +49,6 @@ export class VertexUniformBuffer {
         let halfWidth = (width * 0.5) / this._canvasWidth;
         this._device.queue.writeBuffer(this._uniformBuffer, this.HALFWIDTH_OFFSET, Float32Array.of(halfWidth));
     }
-
-    /*public setPosition(position: vec3) : void {
-        this._device.queue.writeBuffer(this._uniformBuffer, this.POSITION_OFFSET, position as ArrayBuffer);
-    }*/
-
 
     get canvasHeight(): number {
         return this._canvasHeight;

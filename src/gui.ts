@@ -12,13 +12,18 @@ export class ParticleGUI {
 
         numberOfParticles: 100000,
         minParticleLifetime: 1,
-        maxParticleLifetime: 5
+        maxParticleLifetime: 5,
+        particleHeight: 8,
+        particleWidth: 8
     }
 
     constructor() {
         this.gui.remember(this._guiData);
 
         this.gui.add(this._guiData, "vertexPulling");
+
+        this.gui.add(this._guiData, "particleHeight");
+        this.gui.add(this._guiData, "particleWidth");
 
         this.gui.add(this._guiData, 'numberOfParticles');
         this.gui.add(this._guiData, 'minParticleLifetime');

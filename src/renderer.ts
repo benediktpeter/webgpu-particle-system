@@ -335,6 +335,9 @@ export class Renderer {
         const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
 
+        this.vertexUniformBuffer?.setHeight(guiData.particleHeight);
+        this.vertexUniformBuffer?.setWidth(guiData.particleWidth);
+
         this.useVertexPulling = guiData.vertexPulling;
 
     }
