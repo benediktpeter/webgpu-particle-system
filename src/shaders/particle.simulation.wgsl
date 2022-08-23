@@ -1,17 +1,15 @@
+fn rand(seed : vec2<f32>) -> f32 {
+	return fract(sin(dot(seed, vec2<f32>(12.9898, 4.1414))) * 43758.5453);
+}
+
 fn randUnitVec3(seed: f32, idx: f32) -> vec3<f32> {
-    var result = vec3<f32>(0,0,0);
-    result.x = f32(sin(seed + (idx*idx)));
-    result.y = cos(seed + (idx*idx*idx));
-    result.z = cos(seed*seed + idx*idx);
+    var result = vec3<f32>();
+    result.x = rand(vec2<f32>(seed*idx, seed));
+    result.y = rand(vec2<f32>(result.x, idx));
+    result.z = rand(vec2<f32>(idx, result.y));
+    result = (result * 2) - 1;
     return normalize(result);
 }
-
-fn randNum(seed: f32, idx: f32) -> f32 {
-    var result = sin(seed + idx);
-    result = cos(result + idx*idx);
-    return 0.5 * (result + 1);
-}
-
 
 struct Particle {
     position: vec3<f32>,
@@ -45,12 +43,11 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
     //reset expired particles
     if (particle.lifetime <= 0) {
-        particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * randNum(params.randSeed, f32(idx));
+        particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand(vec2<f32>(params.randSeed, f32(idx)));
         particle.position = params.origin;
 
         particle.velocity = vec3<f32>(0,0,0);
         particle.velocity = randUnitVec3(params.randSeed, f32(idx)) * params.initialVelocity;
-
     }
 
     // apply gravity

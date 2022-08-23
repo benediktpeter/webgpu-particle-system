@@ -14,7 +14,7 @@ export class Particles {
     private _initialVelocity: number = 1.0;
     private _minParticleLifetime: number = 2;
     private _maxParticleLifetime: number = 5;
-    private _gravity: vec3 = [0,-0.5,0]
+    private _gravity: vec3 = [0,-1,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
 
     private readonly _device : GPUDevice;
