@@ -9,7 +9,7 @@ export class ParticleGUI {
         particleColor2: [252,118,39, 255],
         particleColor: [230,220,155,255],
 
-        numberOfParticles: 1000,
+        numberOfParticles: 100000,
         minParticleLifetime: 1,
         maxParticleLifetime: 5
     }

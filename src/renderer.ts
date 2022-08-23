@@ -27,8 +27,9 @@ export class Renderer {
     private vertexUniformBuffer : any;
     private fragmentUniformBuffer?: FragmentUniformBuffer;
     private uniformBindGroup: any;
-    private uniformBindGroupVP: any;    //todo: move this to the Particles class and recreate it there whenever the buffer is resized
-    private particleBufferBindGroup?: GPUBindGroup;
+    private uniformBindGroupVP: any;
+    private particleBufferBindGroup?: GPUBindGroup; //this could be moved to the Particles class
+    private previousNumParticles: number = 0;
 
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
@@ -201,7 +202,7 @@ export class Renderer {
             ]
         });
 
-        //todo: extract this into separate method
+
         this.uniformBindGroupVP = this.device.createBindGroup({
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(0),
             entries: [
@@ -240,7 +241,14 @@ export class Renderer {
             ]
         });
 
-        this.particleBufferBindGroup = this.device.createBindGroup({
+        this.createParticleBufferBindGroup()
+    }
+
+    private createParticleBufferBindGroup() {
+        if(!this.particleRenderPipelineVertexPulling || !this.particleSystem) {
+            throw new Error("error creating particle buffer");
+        }
+        this.particleBufferBindGroup = this.device.createBindGroup({    //todo: only call when buffer size changed
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(1),
             entries: [
                 {
@@ -287,6 +295,11 @@ export class Renderer {
         } else {
             renderPass.setPipeline(this.particleRenderPipelineVertexPulling);
             renderPass.setBindGroup(0, this.uniformBindGroupVP as GPUBindGroup);
+            // recreate the bind group if the particle buffer has been resized
+            if(this.previousNumParticles != this.particleSystem.numParticles) {
+                this.createParticleBufferBindGroup()
+                this.previousNumParticles = this.particleSystem.numParticles;
+            }
             renderPass.setBindGroup(1, this.particleBufferBindGroup as GPUBindGroup);
 
             renderPass.draw(<number>this.particleSystem?.numParticles * 6, 1, 0, 0);
