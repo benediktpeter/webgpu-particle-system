@@ -117,7 +117,19 @@ export class Renderer {
                 }),
                 entryPoint: "main",
                 targets: [{
-                    format: this.format
+                    format: this.format,
+                    blend: {
+                        color: {
+                            srcFactor: 'src-alpha',
+                            dstFactor: 'one-minus-src-alpha',
+                            operation: 'add',
+                        },
+                        alpha: {
+                            srcFactor: 'one',
+                            dstFactor: 'one-minus-src-alpha',
+                            operation: 'add',
+                        },
+                    }
                 }]
             },
             primitive: {
@@ -164,7 +176,7 @@ export class Renderer {
 
         this.particleSystem = new Particles(this.device, useCPU);
 
-        const particleTexture = await loadTexture(this.device, "1x1-white.png");
+        const particleTexture = await loadTexture(this.device, "circle_05.png");
         this.uniformBindGroup = this.device.createBindGroup({
             layout: this.particleRenderPipelineInstancing.getBindGroupLayout(0),
             entries: [
