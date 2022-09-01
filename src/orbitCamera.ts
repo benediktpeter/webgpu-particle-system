@@ -19,6 +19,8 @@ export class OrbitCamera {
     private _prevMouseX: number = 0;
     private _prevMouseY: number = 0;
 
+    private currentXRotation = 0.0;
+
 
     constructor(eye: vec3, center: vec3, up: vec3, fov: number = 60, aspect: number = 16.0/9, near: number = 0.001, far: number = 1000.0) {
         this._position = eye;
@@ -59,9 +61,18 @@ export class OrbitCamera {
         this._viewMatrix = mat4.multiply(this._viewMatrix, translationMatrix, rotationMatrix);
     }
 
-    private rotate(angleX: number, angelY: number, angleZ: number): void {
+    private rotate(angleX: number, angleY: number, angleZ: number): void {
+        // lock vertical rotation between -89 and 89 degrees
+        this.currentXRotation += angleX;
+        let boundedXRotation = Math.max(-89, this.currentXRotation);
+        boundedXRotation = Math.min(89, boundedXRotation);
+        const angleXDifference = boundedXRotation - this.currentXRotation;
+        angleX += angleXDifference;
+        this.currentXRotation = boundedXRotation;
+
+
         let offsetQuat = quat.create();
-        offsetQuat = quat.fromEuler(offsetQuat, angleX, angelY, angleZ);
+        offsetQuat = quat.fromEuler(offsetQuat, angleX, angleY, angleZ);
         quat.multiply(this._rotationQuat, offsetQuat, this._rotationQuat);
         this.updateViewMatrix();
     }
