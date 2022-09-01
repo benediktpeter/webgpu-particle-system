@@ -19,9 +19,3 @@ function setupAndRenderTestQuad() {
 }
 
 setupAndRenderTestQuad()
-
-
-window.addEventListener('resize', function() {
-    console.log("resizing window")
-    setupAndRenderTestQuad()
-});
