@@ -12,6 +12,7 @@ import {ParticleGUI} from "./gui";
 import {vec3FromArray, vec3ToColor} from "./utils";
 import {OrbitCamera} from "./orbitCamera";
 import {FpsCounter} from "./fpsCounter";
+import {TimeStamps} from "./timestamps";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -41,6 +42,8 @@ export class Renderer {
 
     private fpsCounter?: FpsCounter;
 
+    private timestamps?: TimeStamps;
+
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -69,7 +72,18 @@ export class Renderer {
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
-        this.device = await adapter?.requestDevice() as GPUDevice;
+        try {
+            this.device = await adapter.requestDevice({
+                requiredFeatures: ["timestamp-query"],
+            });
+            this.timestamps = new TimeStamps(this.device);
+        } catch (error) {
+            console.log("Timestamp queries not supported by this browser.")
+            this.device = null;
+        } finally {
+            if (!this.device)
+                this.device = await adapter.requestDevice();
+        }
         this.context = canvas.getContext('webgpu') as GPUCanvasContext;
         this.format = 'bgra8unorm';
         this.context.configure({
@@ -163,6 +177,7 @@ export class Renderer {
         this.writeCameraBuffer();
 
         this.particleSystem = new Particles(this.device, useCPU);
+        if(this.timestamps) this.particleSystem.timestamps = this.timestamps;
 
         const particleTexture = await loadTexture(this.device, "1x1-white.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -273,7 +288,11 @@ export class Renderer {
 
         // render
         const commandEncoder = this.device.createCommandEncoder();
+        if(this.timestamps) {
+            this.timestamps.writeTimestamp(commandEncoder, 2);
+        }
         const textureView = this.context.getCurrentTexture().createView();
+
         const renderPass = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
@@ -306,8 +325,22 @@ export class Renderer {
             renderPass.draw(<number>this.particleSystem?.numParticles * 6, 1, 0, 0);
             renderPass.end();
         }
+        if(this.timestamps) {
+            this.timestamps?.writeTimestamp(commandEncoder,3);
+            this.timestamps.resolveQuerySet(commandEncoder);
+        }
 
         this.device.queue.submit([commandEncoder.finish()]);
+
+        // Log frame time
+        if(this.timestamps) {
+            const beginRenderTS = this.timestamps.getBufferEntry(0);
+            const endRenderTS = this.timestamps.getBufferEntry(3);
+
+            Promise.all([beginRenderTS, endRenderTS]).then(data => {
+                console.log("Frame time: " + (data[1] - data[0]) / 1000000 + " ms")
+            })
+        }
     }
 
     public frame() {
