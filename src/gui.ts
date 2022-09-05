@@ -13,8 +13,8 @@ export class ParticleGUI {
         numberOfParticles: 100000,
         minParticleLifetime: 1,
         maxParticleLifetime: 5,
-        particleHeight: 8,
-        particleWidth: 8
+        particleHeight: 15,
+        particleWidth: 15
     }
 
     constructor() {

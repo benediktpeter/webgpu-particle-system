@@ -16,9 +16,9 @@ fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) 
     var colorWeight = lifetime / particleUniforms.maxLifetime;
     var maxLifetimeColor = textureColor * particleUniforms.color;
     var minLifetimeColor = textureColor * particleUniforms.color2;
-    textureColor = maxLifetimeColor * colorWeight + minLifetimeColor * (1.0-colorWeight);
-    //textureColor.a = 0;
-    return textureColor;
+    var fragColor = maxLifetimeColor * colorWeight + minLifetimeColor * (1.0-colorWeight);
+    fragColor.a = textureColor.a;
+    return fragColor;
 }
 
 

@@ -121,12 +121,12 @@ export class Renderer {
                     blend: {
                         color: {
                             srcFactor: 'src-alpha',
-                            dstFactor: 'one-minus-src-alpha',
+                            dstFactor: 'one',
                             operation: 'add',
                         },
                         alpha: {
-                            srcFactor: 'one',
-                            dstFactor: 'one-minus-src-alpha',
+                            srcFactor: 'zero',
+                            dstFactor: 'one',
                             operation: 'add',
                         },
                     }
@@ -152,7 +152,19 @@ export class Renderer {
                 }),
                 entryPoint: "main",
                 targets: [{
-                    format: this.format
+                    format: this.format,
+                    blend: {
+                        color: {
+                            srcFactor: 'src-alpha',
+                            dstFactor: 'one',
+                            operation: 'add',
+                        },
+                        alpha: {
+                            srcFactor: 'zero',
+                            dstFactor: 'one',
+                            operation: 'add',
+                        },
+                    }
                 }]
             },
             primitive: {
