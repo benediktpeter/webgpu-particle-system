@@ -23,6 +23,7 @@ export class Particles {
     private _simulationPipeline?: GPUComputePipeline;
     private _simulationUniformBuffer?: SimulationUniformBuffer;
     private _simulationBindGroup?: GPUBindGroup;
+    private _spawnCounterBuffer?: GPUBuffer;
 
     private _useCPU : boolean;
     private _particlePositionsCPU : Float32Array = new Float32Array();
@@ -99,6 +100,10 @@ export class Particles {
 
         this.createGPUParticleBuffer();
         this._simulationUniformBuffer = new SimulationUniformBuffer(this._device);
+        this._spawnCounterBuffer = this._device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.STORAGE| GPUBufferUsage.COPY_DST
+        });
 
 
         // create compute shader pipeline
@@ -139,7 +144,16 @@ export class Particles {
                         offset: 0,
                         size: this._simulationUniformBuffer.bufferSize
                     }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: this._spawnCounterBuffer as GPUBuffer,
+                        offset: 0,
+                        size: this._spawnCounterBuffer?.size
+                    }
                 }
+
             ]
         }
         this._simulationBindGroup = this._device.createBindGroup(bindGroupDescr)
@@ -169,6 +183,7 @@ export class Particles {
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         const seed = (Math.random()- 0.5) * 2;
         this._simulationUniformBuffer?.setRandSeed(seed);
+        this.resetSpawnCounter();
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
@@ -295,6 +310,13 @@ export class Particles {
         // since GPUBufferUsage.WRITE and GPUBufferUsage.VERTEX cannot be combined the buffers have to be destroyed and recreated in order to update it
         this._particleBuffer?.destroy()
         this.createCPUParticleBuffer(true)
+    }
+
+    private resetSpawnCounter(): void {
+        if(!this._spawnCounterBuffer) {
+            throw new Error("Spawn counter buffer not defined.")
+        }
+        this._device.queue.writeBuffer(this._spawnCounterBuffer, 0, Float32Array.of(0));
     }
 
     private static getRandomVec3(normalize: boolean = false) {

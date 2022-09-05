@@ -33,6 +33,7 @@ struct SimulationParams {
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
 @binding(1) @group(0) var<uniform> params : SimulationParams;
+@binding(2) @group(0) var<storage, read_write> spawnCounter: u32;
 
 @compute @workgroup_size(256)
 fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
@@ -43,6 +44,9 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
     //reset expired particles
     if (particle.lifetime <= 0) {
+        if (spawnCounter > 100) {
+            return;
+        }
         particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand(vec2<f32>(params.randSeed, f32(idx)));
         particle.position = params.origin;
 
@@ -50,6 +54,8 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
         velocityAbs = velocityAbs * (rand(vec2<f32>(params.randSeed, f32(idx)) - 0.5));    //velocity += 50% => v * (r - 1/2)
         particle.velocity = vec3<f32>(0,0,0);
         particle.velocity = randUnitVec3(params.randSeed, f32(idx)) * velocityAbs;
+
+        spawnCounter = spawnCounter + 1;
     }
 
     // apply gravity

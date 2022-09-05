@@ -11,6 +11,11 @@ struct ParticleFragmentUniforms {
 
 @fragment
 fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) vec4<f32> {
+    // Expired particles are invisible
+    if (lifetime <= 0) {    // Causes warnings but works as intended
+        return vec4<f32>(0.0);
+    }
+
     var textureColor : vec4<f32> = textureSample(textureData, textureSampler, uv);
 
     // interpolate between the two colors
@@ -18,6 +23,8 @@ fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) 
     var maxLifetimeColor = textureColor * particleUniforms.color;
     var minLifetimeColor = textureColor * particleUniforms.color2;
     var fragColor = maxLifetimeColor * colorWeight + minLifetimeColor * (1.0-colorWeight);
+
+    // alpha is independent of lifetime
     fragColor.a = textureColor.a * particleUniforms.alphaFactor;
     return fragColor;
 }
