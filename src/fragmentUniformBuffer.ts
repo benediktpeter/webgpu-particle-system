@@ -10,9 +10,10 @@ export class FragmentUniformBuffer {
     private readonly COLOR_OFFSET : number = 0;
     private readonly COLOR2_OFFSET: number = this.COLOR_OFFSET + 4*4;
     private readonly MAX_LIFETIME_OFFSET: number = this.COLOR2_OFFSET + 4*4;
+    private readonly ALPHA_FACTOR_OFFSET: number = this.MAX_LIFETIME_OFFSET + 4;
 
 
-    constructor(device: GPUDevice, color: vec3, color2: vec3, maxLifetime: number) {
+    constructor(device: GPUDevice, color: vec3, color2: vec3, maxLifetime: number, alphaFactor: number) {
         this._device = device;
         this._uniformBuffer = device.createBuffer({
             size: this._bufferSize,
@@ -22,6 +23,7 @@ export class FragmentUniformBuffer {
         this.setColor(color);
         this.setColor2(color2)
         this.setMaxLifetime(maxLifetime);
+        this.setAlphaFactor(alphaFactor);
     }
 
     public setColor(color: vec3) : void {
@@ -32,8 +34,12 @@ export class FragmentUniformBuffer {
         this._device.queue.writeBuffer(this._uniformBuffer, this.COLOR2_OFFSET, color2 as ArrayBuffer);
     }
 
-    private setMaxLifetime(maxLifetime: number) {
+    public setMaxLifetime(maxLifetime: number) {
         this._device.queue.writeBuffer(this._uniformBuffer, this.MAX_LIFETIME_OFFSET, Float32Array.of(maxLifetime));
+    }
+
+    public setAlphaFactor(alphaFactor: number) {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.ALPHA_FACTOR_OFFSET, Float32Array.of(alphaFactor));
     }
 
     get device(): GPUDevice {

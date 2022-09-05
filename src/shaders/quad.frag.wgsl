@@ -1,7 +1,8 @@
 struct ParticleFragmentUniforms {
    color: vec4<f32>,
    color2: vec4<f32>,
-   maxLifetime: f32
+   maxLifetime: f32,
+   alphaFactor: f32
 }
 
 @binding(2) @group(0) var textureSampler : sampler;
@@ -17,7 +18,7 @@ fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) 
     var maxLifetimeColor = textureColor * particleUniforms.color;
     var minLifetimeColor = textureColor * particleUniforms.color2;
     var fragColor = maxLifetimeColor * colorWeight + minLifetimeColor * (1.0-colorWeight);
-    fragColor.a = textureColor.a;
+    fragColor.a = textureColor.a * particleUniforms.alphaFactor;
     return fragColor;
 }
 

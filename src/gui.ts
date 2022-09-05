@@ -10,11 +10,12 @@ export class ParticleGUI {
         particleColor2: [252,118,39,255],
         particleColor: [230,220,155,255],
 
-        numberOfParticles: 100000,
+        numberOfParticles: 1000000,
         minParticleLifetime: 1,
         maxParticleLifetime: 5,
         particleHeight: 15,
-        particleWidth: 15
+        particleWidth: 15,
+        particleBrightness: 0.2
     }
 
     constructor() {
@@ -28,6 +29,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, 'numberOfParticles');
         this.gui.add(this._guiData, 'minParticleLifetime');
         this.gui.add(this._guiData, 'maxParticleLifetime');
+        this.gui.add(this._guiData, 'particleBrightness');
 
 
         this.gui.addColor(this._guiData, 'particleColor');
@@ -39,7 +41,7 @@ export class ParticleGUI {
         if (this._guiData.numberOfParticles * Particles.INSTANCE_SIZE > 0x7FFFFFF)
         {
             window.alert("Too many particles. Maximum number of particles: " + Math.floor(0x7FFFFFF / 32));
-            this._guiData.numberOfParticles = 100000;
+            this._guiData.numberOfParticles = 1000000;
         }
 
         return this._guiData;
