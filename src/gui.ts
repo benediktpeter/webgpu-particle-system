@@ -38,10 +38,9 @@ export class ParticleGUI {
 
 
     get guiData() {
-        if (this._guiData.numberOfParticles * Particles.INSTANCE_SIZE > 0x7FFFFFF)
-        {
+        if (this._guiData.numberOfParticles * Particles.INSTANCE_SIZE > 0x7FFFFFF) {
             window.alert("Too many particles. Maximum number of particles: " + Math.floor(0x7FFFFFF / 32));
-            this._guiData.numberOfParticles = 1000000;
+            this._guiData.numberOfParticles = Math.floor(0x7FFFFFF / 32);
         }
 
         return this._guiData;

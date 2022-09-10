@@ -13,6 +13,8 @@ struct ParticleFragmentUniforms {
 fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) vec4<f32> {
     var textureColor : vec4<f32> = textureSample(textureData, textureSampler, uv);
 
+    //todo: not draw if lifetime <= 0
+
     // interpolate between the two colors
     var colorWeight = lifetime / particleUniforms.maxLifetime;
     var maxLifetimeColor = textureColor * particleUniforms.color;

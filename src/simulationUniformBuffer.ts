@@ -5,7 +5,7 @@ export class SimulationUniformBuffer {
     private readonly _uniformBuffer : GPUBuffer;
     private _device: GPUDevice;
 
-    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4;    // f deltatime, v3 gravity, v3 origin, f lifetime * 2, f initialVelocity, f seed
+    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4 + 4;    // f deltatime, v3 gravity, v3 origin, f lifetime * 2, f initialVelocity, f seed, u maxIdx
 
     private readonly DELTATIME_OFFSET = 0;
     private readonly GRAVITY_OFFSET = 16; //4+12 (align 16)
@@ -14,6 +14,7 @@ export class SimulationUniformBuffer {
     private readonly MAX_LIFETIME_OFFSET = this.MIN_LIFETIME_OFFSET + 4;
     private readonly INITIAL_VELOCITY_OFFSET = this.MAX_LIFETIME_OFFSET + 4;
     private readonly RAND_SEED_OFFSET = this.INITIAL_VELOCITY_OFFSET + 4;
+    private readonly MAX_IDX_OFFSET = this.RAND_SEED_OFFSET + 4;
 
 
     constructor(device: GPUDevice) {
@@ -62,4 +63,9 @@ export class SimulationUniformBuffer {
         this._device.queue.writeBuffer(this._uniformBuffer, this.RAND_SEED_OFFSET, Float32Array.of(seed));
     }
 
+    public setMaxIdx(maxIdx: number) : void {
+        if (maxIdx < 0 || maxIdx > Math.floor(0x7FFFFFF / 32))
+            maxIdx = 0;
+        this._device.queue.writeBuffer(this._uniformBuffer, this.MAX_IDX_OFFSET, Uint32Array.of(maxIdx));
+    }
 }

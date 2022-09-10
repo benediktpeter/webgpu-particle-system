@@ -28,7 +28,8 @@ struct SimulationParams {
     minLifetime: f32,
     maxLifetime: f32,
     initialVelocity: f32,
-    randSeed: f32
+    randSeed: f32,
+    maxIdx: u32 //todo: change type if uint doesn't work
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
@@ -43,11 +44,15 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
     //reset expired particles
     if (particle.lifetime <= 0) {
+        if(params.maxIdx != 0 && idx > params.maxIdx) {
+            return;
+        }
+
         particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand(vec2<f32>(params.randSeed, f32(idx)));
         particle.position = params.origin;
 
         var velocityAbs = params.initialVelocity;
-        velocityAbs = velocityAbs * (rand(vec2<f32>(params.randSeed, f32(idx)) - 0.5));    //velocity += 50% => v * (r - 1/2)
+        velocityAbs = velocityAbs * (rand(vec2<f32>(params.randSeed, f32(idx)) - 0.5));    // velocity += 50% => v * (r - 1/2)
         particle.velocity = vec3<f32>(0,0,0);
         particle.velocity = randUnitVec3(params.randSeed, f32(idx)) * velocityAbs;
     }

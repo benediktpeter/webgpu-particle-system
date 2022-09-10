@@ -24,6 +24,10 @@ export class Particles {
     private _simulationUniformBuffer?: SimulationUniformBuffer;
     private _simulationBindGroup?: GPUBindGroup;
 
+    private _simulationStartTime: any;
+    private _simulationMaxIdx: number = 0;
+    private _firstFrameMaxIdx: number = 0;
+
     private _useCPU : boolean;
     private _particlePositionsCPU : Float32Array = new Float32Array();
     private _particleVelocitiesCPU : Float32Array = new Float32Array();
@@ -36,7 +40,7 @@ export class Particles {
         this._useCPU = useCPU;
 
         if(this._useCPU) {
-            this.initCPU();
+            //this.initCPU();
         } else {
             this.initGPU();
         }
@@ -92,6 +96,9 @@ export class Particles {
             size: this._numParticles * Particles.INSTANCE_SIZE,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
+        this._simulationStartTime = performance.now();
+        this._firstFrameMaxIdx = this._numParticles / (this._maxParticleLifetime - this._minParticleLifetime) * 2.5 + 1;
+        this._simulationMaxIdx = this._firstFrameMaxIdx;
     }
 
     private initGPU() {
@@ -99,7 +106,6 @@ export class Particles {
 
         this.createGPUParticleBuffer();
         this._simulationUniformBuffer = new SimulationUniformBuffer(this._device);
-
 
         // create compute shader pipeline
         const computePipelineDescr : GPUComputePipelineDescriptor = {
@@ -169,6 +175,12 @@ export class Particles {
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         const seed = (Math.random()- 0.5) * 2;
         this._simulationUniformBuffer?.setRandSeed(seed);
+        if(this._simulationStartTime && (performance.now() - this._simulationStartTime) < 1000) {
+            this._simulationMaxIdx += (this._numParticles - this._firstFrameMaxIdx) * 0.95 * deltaTime;
+            this._simulationUniformBuffer?.setMaxIdx(this._simulationMaxIdx);
+        } else {
+            this._simulationUniformBuffer?.setMaxIdx(0);
+        }
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
