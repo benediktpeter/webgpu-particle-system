@@ -4,6 +4,7 @@ import {ParticleGUI} from "./gui";
 
 import simulationComputeShader from './shaders/particle.simulation.wgsl'
 import {SimulationUniformBuffer} from "./simulationUniformBuffer";
+import {TimeStamps} from "./timestamps";
 
 export class Particles {
 
@@ -33,6 +34,7 @@ export class Particles {
     private _particleVelocitiesCPU : Float32Array = new Float32Array();
     private _particleLifetimesCPU : Float32Array = new Float32Array();
 
+    private _timestamps?: TimeStamps;
 
 
     constructor(device: GPUDevice, useCPU: boolean) {
@@ -158,7 +160,7 @@ export class Particles {
             this.updateGPU(deltaTime);
     }
 
-    private updateGPU(deltaTime: number) : void {
+    private updateGPU(deltaTime: number) : void {   //todo: add timestamps as parameter
         if(!this._simulationPipeline) {
             throw new Error("Simulation pipeline not defined")
         }
@@ -184,11 +186,13 @@ export class Particles {
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
+        this._timestamps?.writeTimestamp(commandEncoder,0);
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(this._simulationPipeline);
         passEncoder.setBindGroup(0, this._simulationBindGroup)
         passEncoder.dispatchWorkgroups(Math.ceil(this._numParticles / 256))
         passEncoder.end();
+        this._timestamps?.writeTimestamp(commandEncoder,1);
 
         this._device.queue.submit([commandEncoder.finish()])
     }
@@ -354,5 +358,9 @@ export class Particles {
 
     set maxNumParticlesSpawnPerSecond(value: number) {
         this._maxNumParticlesSpawnPerSecond = value;
+    }
+
+    set timestamps(value: TimeStamps) {
+        this._timestamps = value;
     }
 }
