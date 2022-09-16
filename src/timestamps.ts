@@ -1,10 +1,10 @@
 export class TimeStamps {
 
     private readonly _capacity = 4;
-    private readonly START_COMPUTE_IDX = 0;
-    private readonly END_COMPUTE_IDX = 1;
-    private readonly START_RENDER_IDX = 2;
-    private readonly END_RENDER_IDX = 3;
+    public static readonly START_COMPUTE_IDX = 0;
+    public static readonly END_COMPUTE_IDX = 1;
+    public static readonly START_RENDER_IDX = 2;
+    public static readonly END_RENDER_IDX = 3;
 
     private _querySet : GPUQuerySet;
     private _queryBuffer: GPUBuffer;
@@ -35,6 +35,16 @@ export class TimeStamps {
         const buffer = await this.getWholeBuffer()
         const array = new BigInt64Array(buffer);
         return Number(array[index]);
+    }
+
+    public async getAllBufferEntries(): Promise<number[]> {
+        let result: number[] = new Array(5);
+        const buffer = await this.getWholeBuffer()
+        const bufferArray = new BigInt64Array(buffer);
+        for(let i = 0; i < 5; i++) {
+            result[i] = Number(bufferArray[i])
+        }
+        return result;
     }
 
     public writeTimestamp(commandEncoder: GPUCommandEncoder, queryIndex: number = 0) {

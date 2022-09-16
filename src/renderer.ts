@@ -13,6 +13,7 @@ import {vec3FromArray, vec3ToColor} from "./utils";
 import {OrbitCamera} from "./orbitCamera";
 import {FpsCounter} from "./fpsCounter";
 import {TimeStamps} from "./timestamps";
+import {BenchmarkLogger} from "./benchmarkLogger";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -43,6 +44,7 @@ export class Renderer {
     private fpsCounter?: FpsCounter;
 
     private timestamps?: TimeStamps;
+    private benchmark?: BenchmarkLogger;
 
 
     calculateDeltaTime(): void {
@@ -91,6 +93,8 @@ export class Renderer {
             format: this.format,
             alphaMode: "opaque"
         });
+
+        this.benchmark = new BenchmarkLogger(5);
 
         await this.initParticleRenderingPipeline()
     }
@@ -364,6 +368,8 @@ export class Renderer {
             Promise.all([beginRenderTS, endRenderTS]).then(data => {
                 console.log("Frame time: " + (data[1] - data[0]) / 1000000 + " ms")
             })
+            console.log(this.benchmark)
+            this.benchmark?.addEntry(this.timestamps);
         }
     }
 
