@@ -69,7 +69,12 @@ export class Renderer {
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
-        this.device = await adapter?.requestDevice() as GPUDevice;
+        const deviceDescriptor = {
+            requiredLimits: {
+                maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
+            },
+        };
+        this.device = await adapter?.requestDevice(deviceDescriptor) as GPUDevice;
         this.context = canvas.getContext('webgpu') as GPUCanvasContext;
         this.format = 'bgra8unorm';
         this.context.configure({
