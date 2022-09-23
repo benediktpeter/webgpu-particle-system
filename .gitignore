@@ -104,3 +104,5 @@ typings/
 
 # IntelliJ
 .idea
+dist/main.bundle.js
+dist/main.bundle.js.map

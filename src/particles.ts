@@ -8,7 +8,7 @@ import {SimulationUniformBuffer} from "./simulationUniformBuffer";
 export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4;    // vec3 position, float lifetime, vec3 velocity, padding
-    public static readonly MAX_NUM_PARTICLES = Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
+    public static readonly MAX_NUM_PARTICLES = 16776960; //Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
 
     private _numParticles: number = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
