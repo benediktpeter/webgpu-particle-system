@@ -45,6 +45,7 @@ export class Renderer {
 
     private timestamps?: TimeStamps;
     private benchmark?: BenchmarkLogger;
+    private gui?: ParticleGUI;
 
 
     calculateDeltaTime(): void {
@@ -69,7 +70,8 @@ export class Renderer {
         }
     }
 
-    public initRenderer = async (useCPU: boolean = false) => {
+    public initRenderer = async (gui: ParticleGUI) => {
+        this.gui = gui;
         const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
@@ -94,7 +96,8 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
-        this.benchmark = new BenchmarkLogger(5);
+        //console.log(this.particleSystem)
+
 
         await this.initParticleRenderingPipeline()
     }
@@ -204,8 +207,13 @@ export class Renderer {
         });
         this.writeCameraBuffer();
 
-        this.particleSystem = new Particles(this.device, useCPU);
-        if(this.timestamps) this.particleSystem.timestamps = this.timestamps;
+        // @ts-ignore
+        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
+        if(this.timestamps){
+            this.particleSystem.timestamps = this.timestamps;
+            // @ts-ignore
+            this.benchmark = new BenchmarkLogger(5, this.particleSystem?.numParticles, this.gui.guiData.useVertexPulling, "GTX1060");
+        }
 
         const particleTexture = await loadTexture(this.device, "circle_05.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -362,13 +370,13 @@ export class Renderer {
 
         // Log frame time
         if(this.timestamps) {
-            const beginRenderTS = this.timestamps.getBufferEntry(0);
+            /*const beginRenderTS = this.timestamps.getBufferEntry(0);
             const endRenderTS = this.timestamps.getBufferEntry(3);
 
             Promise.all([beginRenderTS, endRenderTS]).then(data => {
                 console.log("Frame time: " + (data[1] - data[0]) / 1000000 + " ms")
             })
-            console.log(this.benchmark)
+            console.log(this.benchmark)*/
             this.benchmark?.addEntry(this.timestamps);
         }
     }

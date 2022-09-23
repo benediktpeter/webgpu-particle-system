@@ -37,9 +37,10 @@ export class Particles {
     private _timestamps?: TimeStamps;
 
 
-    constructor(device: GPUDevice, useCPU: boolean) {
+    constructor(device: GPUDevice, numParticles: number) {
         this._device = device;
-        this._useCPU = useCPU;
+        this._useCPU = false;
+        this._numParticles = numParticles;
 
         if(this._useCPU) {
             //this.initCPU();

@@ -6,15 +6,23 @@ export class BenchmarkLogger {
     private duration: number;
     private startTimestamp: number;
 
-    constructor(duration: number) {
+    private numParticles: number;
+    private vertexPulling: boolean;
+    private gpu: string;
+    private other: string;
+
+    constructor(duration: number, numParticles: number, vertexPulling: boolean, gpu: string, other?: string) {
         this.duration = duration;
         this.startTimestamp = performance.now();
 
-        this.text = "frame_duration";    //only for now
+        this.text = "start_comp,end_comp,start_render,end_render";
+        this.numParticles = numParticles;
+        this.vertexPulling = vertexPulling;
+        this.gpu = gpu;
+        this.other = other == undefined ? "" : other;
     }
 
     public async addEntry(timestamps: TimeStamps) {
-        console.log("adding entry") //todo: delete
         if(this.duration == 0) return;
         if(performance.now() - this.startTimestamp > this.duration * 1000){
             this.createFile();
@@ -24,15 +32,18 @@ export class BenchmarkLogger {
 
         const timestampEntries = await timestamps.getAllBufferEntries(); //todo: if await causes problems here retrieve buffer data in render function instead and give array to this function
         const startComputeTime = timestampEntries[TimeStamps.START_COMPUTE_IDX];
+        const endComputeTime = timestampEntries[TimeStamps.END_COMPUTE_IDX];
+        const startRenderTime = timestampEntries[TimeStamps.START_RENDER_IDX];
         const endRenderTime = timestampEntries[TimeStamps.END_RENDER_IDX];
 
-        this.text += "\n" + (startComputeTime - endRenderTime); // + "," + next...
+        // Note: time values in nanoseconds
+        this.text += "\n" + startComputeTime + "," + endComputeTime + "," + startRenderTime + "," + endRenderTime; // + "," + next...
     }
 
 
     public createFile() {
         console.log("creating file")
-        this.downloadFile("log.csv", this.text);
+        this.downloadFile("log_"+ this.gpu +"_" + this.numParticles + "particles" + (this.vertexPulling ? "_usingVertexPulling" : "_usingVertexBuffer") + ".csv", this.text);    //todo: name filename according to data (vertex pulling, num particles, gpu etc.)
     }
 
 

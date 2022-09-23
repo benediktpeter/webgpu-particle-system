@@ -5,7 +5,7 @@ export class ParticleGUI {
     gui = new dat.GUI();
     private _guiData = {
         useCPU: false,
-        vertexPulling: true,
+        vertexPulling: false,
 
         particleColor2: [252,118,39,255],
         particleColor: [230,220,155,255],
