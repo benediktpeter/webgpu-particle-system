@@ -22,7 +22,7 @@ export class OrbitCamera {
     private currentXRotation = 0.0;
 
 
-    constructor(eye: vec3, center: vec3, up: vec3, fov: number = 60, aspect: number = 16.0/9, near: number = 0.001, far: number = 1000.0) {
+    constructor(eye: vec3, center: vec3, up: vec3, fov: number = 60, aspect: number = 16.0/9, near: number = 0.001, far: number = 10000.0) {
         this._position = eye;
         this._target = center;
         this._up = up;
@@ -48,6 +48,7 @@ export class OrbitCamera {
         this._position[2] += deltaY * this.ZOOM_FACTOR;
         this._position[2] = Math.min(this.MAX_ZOOM, this._position[2]);
         this._position[2] = Math.max(this.MIN_ZOOM, this._position[2]);
+        console.log(this._position)
     }
 
     private updateViewMatrix() {
@@ -83,6 +84,7 @@ export class OrbitCamera {
         if (event.buttons === 1) {
             let offsetX = (currentX - this._prevMouseX) * this.MOVE_FACTOR;
             let offsetY = (currentY - this._prevMouseY) * this.MOVE_FACTOR;
+            offsetY = 0;
             this.rotate(0.0, offsetX, 0.0);
             this.rotate(offsetY, 0.0, 0.0);
         }
