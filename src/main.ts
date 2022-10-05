@@ -13,7 +13,7 @@ function frame() {
 
 function setupAndRenderTestQuad() {
     renderer.initCheck()
-        .then(() => renderer.initRenderer(gui.guiData.useCPU)
+        .then(() => renderer.initRenderer()
             .then(() => requestAnimationFrame(frame))
         );
 }

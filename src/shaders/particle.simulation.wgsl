@@ -29,7 +29,7 @@ struct SimulationParams {
     maxLifetime: f32,
     initialVelocity: f32,
     randSeed: f32,
-    maxIdx: u32 //todo: change type if uint doesn't work
+    maxIdx: u32
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;

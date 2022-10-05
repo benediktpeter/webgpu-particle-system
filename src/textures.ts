@@ -15,7 +15,6 @@ export const loadTexture = async(device: GPUDevice, filePath: string) => {
     // load image file
     const img = document.createElement('img');
     img.src = '../assets/' + filePath;
-    //img.setAttribute('crossOrigin', '');
     await img.decode();
     const imageBitmap = await createImageBitmap(img);
 

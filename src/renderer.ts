@@ -1,6 +1,4 @@
-import {CheckWebGPU} from "./helper";
-
-import quadFragmentShader from './shaders/quad.frag.wgsl'
+import quadFragmentShader from './shaders/particle_quad.frag.wgsl'
 import particleQuadVertexShader from './shaders/particle_quad.vert.wgsl'
 
 import {loadTexture} from "./textures";
@@ -56,15 +54,13 @@ export class Renderer {
     }
 
     public initCheck = async () => {
-        const checkgpu = CheckWebGPU();
-        if (checkgpu.includes('Your current browser does not support WebGPU!')) {
-            console.log(checkgpu);
-            window.alert(checkgpu)
-            throw('Your current browser does not support WebGPU!');
+        if (!navigator.gpu) {
+            window.alert("Your browser does not support WebGPU!")
+            throw ("Your browser does not support WebGPU!");
         }
     }
 
-    public initRenderer = async (useCPU: boolean = false) => {
+    public initRenderer = async () => {
         const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
@@ -86,7 +82,7 @@ export class Renderer {
         await this.initParticleRenderingPipeline()
     }
 
-    public async initParticleRenderingPipeline(useCPU: boolean = false) {
+    public async initParticleRenderingPipeline() {
         this.particleRenderPipelineInstancing = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
@@ -191,7 +187,7 @@ export class Renderer {
         });
         this.writeCameraBuffer();
 
-        this.particleSystem = new Particles(this.device, useCPU);
+        this.particleSystem = new Particles(this.device);
 
         const particleTexture = await loadTexture(this.device, "circle_05.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -278,7 +274,7 @@ export class Renderer {
         if(!this.particleRenderPipelineVertexPulling || !this.particleSystem) {
             throw new Error("error creating particle buffer");
         }
-        this.particleBufferBindGroup = this.device.createBindGroup({    //todo: only call when buffer size changed
+        this.particleBufferBindGroup = this.device.createBindGroup({
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(1),
             entries: [
                 {
@@ -286,7 +282,7 @@ export class Renderer {
                     resource: {
                         buffer: this.particleSystem.particleBuffer as GPUBuffer,
                         offset: 0,
-                        size: this.particleSystem.particleBuffer?.size  //todo: change to max buffer size?
+                        size: this.particleSystem.particleBuffer?.size
                     }
                 }
             ]
@@ -350,7 +346,6 @@ export class Renderer {
     public updateData(gui : ParticleGUI): void {
         // update simulation properties
         this.particleSystem?.updateData(gui);
-
 
         // update rendering properties
         if(!this.fragmentUniformBuffer) {

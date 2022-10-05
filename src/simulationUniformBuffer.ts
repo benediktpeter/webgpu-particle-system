@@ -5,10 +5,10 @@ export class SimulationUniformBuffer {
     private readonly _uniformBuffer : GPUBuffer;
     private _device: GPUDevice;
 
-    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4 + 4;    // f deltatime, v3 gravity, v3 origin, f lifetime * 2, f initialVelocity, f seed, u maxIdx
+    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4 + 4;    // f32 deltatime, v3 gravity, v3 origin, minlifetime f23, maxlifetime f32, initialVelocity: f32, randSeed: f32, maxidx: u32
 
     private readonly DELTATIME_OFFSET = 0;
-    private readonly GRAVITY_OFFSET = 16; //4+12 (align 16)
+    private readonly GRAVITY_OFFSET = 16;
     private readonly ORIGIN_OFFSET = 32;
     private readonly MIN_LIFETIME_OFFSET = this.ORIGIN_OFFSET + 3*4;
     private readonly MAX_LIFETIME_OFFSET = this.MIN_LIFETIME_OFFSET + 4;
@@ -19,7 +19,7 @@ export class SimulationUniformBuffer {
 
     constructor(device: GPUDevice) {
         this._device = device;
-        this._bufferSize += 16 // error says the size needs to be 56
+        this._bufferSize += 16;
 
         this._uniformBuffer = device.createBuffer({
             size: this._bufferSize,
