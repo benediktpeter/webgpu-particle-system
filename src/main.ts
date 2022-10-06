@@ -14,6 +14,7 @@ function frame() {
 function setupAndRenderTestQuad() {
     renderer.initCheck()
         .then(() => renderer.initRenderer(gui)
+
             .then(() => requestAnimationFrame(frame))
         );
 }

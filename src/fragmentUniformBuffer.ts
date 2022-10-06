@@ -1,11 +1,11 @@
-import {vec3, vec4} from "gl-matrix";
+import {vec3} from "gl-matrix";
 
 export class FragmentUniformBuffer {
 
-    private _device: GPUDevice;
+    private readonly _device: GPUDevice;
     private readonly _uniformBuffer : GPUBuffer;
 
-    private _bufferSize = 64; // float
+    private _bufferSize = 64; // f32 * 4
 
     private readonly COLOR_OFFSET : number = 0;
     private readonly COLOR2_OFFSET: number = this.COLOR_OFFSET + 4*4;

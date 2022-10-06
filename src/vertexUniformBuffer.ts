@@ -3,9 +3,8 @@ export class VertexUniformBuffer {
 
     private readonly _uniformBuffer : GPUBuffer;
 
-    private _bufferSize = 4 + 4; // vec3, float, float
-    //private readonly POSITION_OFFSET : number = 0;
-    private readonly HALFWIDTH_OFFSET : number = 0//this.POSITION_OFFSET + 4*3;
+    private _bufferSize = 4 + 4; //float, float
+    private readonly HALFWIDTH_OFFSET : number = 0;
     private readonly HALFHEIGHT_OFFSET : number = this.HALFWIDTH_OFFSET + 4;
 
     private _canvasHeight : number;
@@ -34,11 +33,9 @@ export class VertexUniformBuffer {
         return this._uniformBuffer;
     }
 
-
     get bufferSize(): number {
         return this._bufferSize;
     }
-
 
     public setHeight(height: number): void {
         let halfHeight = (height * 0.5) / this._canvasHeight;

@@ -1,6 +1,4 @@
-import {CheckWebGPU} from "./helper";
-
-import quadFragmentShader from './shaders/quad.frag.wgsl'
+import quadFragmentShader from './shaders/particle_quad.frag.wgsl'
 import particleQuadVertexShader from './shaders/particle_quad.vert.wgsl'
 
 import {loadTexture} from "./textures";
@@ -62,32 +60,47 @@ export class Renderer {
     }
 
     public initCheck = async () => {
-        const checkgpu = CheckWebGPU();
-        if (checkgpu.includes('Your current browser does not support WebGPU!')) {
-            console.log(checkgpu);
-            window.alert(checkgpu)
-            throw('Your current browser does not support WebGPU!');
+        if (!navigator.gpu) {
+            window.alert("Your browser does not support WebGPU!")
+            throw ("Your browser does not support WebGPU!");
         }
     }
 
+
     public initRenderer = async (gui: ParticleGUI) => {
         this.gui = gui;
+
         const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
+		
+		let deviceDescriptor = {
+            requiredLimits: {
+                maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
+            },
+			requiredFeatures: ["timestamp-query"]
+        };
+		
+
         try {
-            this.device = await adapter.requestDevice({
-                requiredFeatures: ["timestamp-query"],
-            });
+            this.device = await adapter.requestDevice(deviceDescriptor);
             this.timestamps = new TimeStamps(this.device);
         } catch (error) {
             console.log("Timestamp queries not supported by this browser.")
             this.device = null;
         } finally {
-            if (!this.device)
-                this.device = await adapter.requestDevice();
+            if (!this.device) {
+				deviceDescriptor = {
+					requiredLimits: {
+						maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
+					}
+				};
+				
+                this.device = await adapter.requestDevice(deviceDescriptor);
+			}
         }
+
         this.context = canvas.getContext('webgpu') as GPUCanvasContext;
         this.format = 'bgra8unorm';
         this.context.configure({
@@ -102,7 +115,7 @@ export class Renderer {
         await this.initParticleRenderingPipeline()
     }
 
-    public async initParticleRenderingPipeline(useCPU: boolean = false) {
+    public async initParticleRenderingPipeline() {
         this.particleRenderPipelineInstancing = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
@@ -207,6 +220,7 @@ export class Renderer {
         });
         this.writeCameraBuffer();
 
+
         // @ts-ignore
         this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
         if(this.timestamps){
@@ -214,6 +228,7 @@ export class Renderer {
             // @ts-ignore
             this.benchmark = new BenchmarkLogger(5, this.particleSystem?.numParticles, this.gui.guiData.useVertexPulling, "GTX1060");
         }
+
 
         const particleTexture = await loadTexture(this.device, "circle_05.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -300,7 +315,7 @@ export class Renderer {
         if(!this.particleRenderPipelineVertexPulling || !this.particleSystem) {
             throw new Error("error creating particle buffer");
         }
-        this.particleBufferBindGroup = this.device.createBindGroup({    //todo: only call when buffer size changed
+        this.particleBufferBindGroup = this.device.createBindGroup({
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(1),
             entries: [
                 {
@@ -308,7 +323,7 @@ export class Renderer {
                     resource: {
                         buffer: this.particleSystem.particleBuffer as GPUBuffer,
                         offset: 0,
-                        size: this.particleSystem.particleBuffer?.size  //todo: change to max buffer size?
+                        size: this.particleSystem.particleBuffer?.size
                     }
                 }
             ]
@@ -392,7 +407,6 @@ export class Renderer {
     public updateData(gui : ParticleGUI): void {
         // update simulation properties
         this.particleSystem?.updateData(gui);
-
 
         // update rendering properties
         if(!this.fragmentUniformBuffer) {
