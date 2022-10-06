@@ -74,14 +74,14 @@ export class Renderer {
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
-		
-		let deviceDescriptor = {
+
+		let deviceDescriptor : GPUDeviceDescriptor = {
             requiredLimits: {
                 maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
             },
 			requiredFeatures: ["timestamp-query"]
         };
-		
+
 
         try {
             this.device = await adapter.requestDevice(deviceDescriptor);
@@ -96,7 +96,7 @@ export class Renderer {
 						maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
 					}
 				};
-				
+
                 this.device = await adapter.requestDevice(deviceDescriptor);
 			}
         }

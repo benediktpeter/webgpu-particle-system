@@ -35,16 +35,11 @@ export class Particles {
 
     constructor(device: GPUDevice, numParticles: number) {
         this._device = device;
-        this._useCPU = false;
         this._numParticles = numParticles;
 
-        if(this._useCPU) {
-            //this.initCPU();
-        } else {
-            this.initGPU();
-        }
-
+        this.initGPU();
     }
+
     private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,
