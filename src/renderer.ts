@@ -101,7 +101,8 @@ export class Renderer {
             const self = this;
             // @ts-ignore
             buttonElement.onclick = function(ev) {
-                self.startBenchmark(10);
+                const duration = (<HTMLInputElement>document.getElementById("benchmark-duration")).value;
+                self.startBenchmark(Number(duration));
             };
 
         } catch (error) {

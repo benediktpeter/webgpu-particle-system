@@ -16,8 +16,10 @@
    <div id="fps-counter" class="fpsCounter">
       FPS
    </div>
-   <div id="benchmark" style="display: none">
-      <button id="benchmark-button" onclick="benchmarkButtonClicked()">Start Benchmarking</button>
+   <div id="benchmark" class="benchmarking">
+      <label for="benchmark-duration">Duration: </label>
+      <input id="benchmark-duration" type="number" name="benchmark-duration" min="1" value="10">
+      <button id="benchmark-button">Start Benchmarking</button>
    </div>
 
    <script src="main.bundle.js"></script>
