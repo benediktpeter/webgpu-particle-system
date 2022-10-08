@@ -42,6 +42,8 @@ export class Renderer {
     private fpsCounter?: FpsCounter;
 
     private timestamps?: TimeStamps;
+    private timestampsQueriesAllowed: boolean = false;
+    private benchmarkActive: boolean = false;
     private benchmark?: BenchmarkLogger;
     private gui?: ParticleGUI;
 
@@ -84,19 +86,35 @@ export class Renderer {
 
 
         try {
+            // If timestamp queries are not allowed in the browser, this will throw an exception
             this.device = await adapter.requestDevice(deviceDescriptor);
             this.timestamps = new TimeStamps(this.device);
+            this.timestampsQueriesAllowed = true;
+
+            // make the benchmark div visible if timestamp queries are possible
+            const benchmarkDiv = document.getElementById("benchmark");
+            // @ts-ignore
+            benchmarkDiv.style.display = "block";
+
+            // add callback to button
+            const buttonElement = document.getElementById("benchmark-button");
+            const self = this;
+            // @ts-ignore
+            buttonElement.onclick = function(ev) {
+                self.startBenchmark(10);
+            };
+
         } catch (error) {
             console.log("Timestamp queries not supported by this browser.")
             this.device = null;
         } finally {
+            // if timestamp queries are not available, request the device without requiring timestamp-queries
             if (!this.device) {
 				deviceDescriptor = {
 					requiredLimits: {
 						maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
 					}
 				};
-
                 this.device = await adapter.requestDevice(deviceDescriptor);
 			}
         }
@@ -108,9 +126,6 @@ export class Renderer {
             format: this.format,
             alphaMode: "opaque"
         });
-
-        //console.log(this.particleSystem)
-
 
         await this.initParticleRenderingPipeline()
     }
@@ -223,10 +238,8 @@ export class Renderer {
 
         // @ts-ignore
         this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
-        if(this.timestamps){
+        if(this.timestamps) {
             this.particleSystem.timestamps = this.timestamps;
-            // @ts-ignore
-            this.benchmark = new BenchmarkLogger(5, this.particleSystem?.numParticles, this.gui.guiData.useVertexPulling, "GTX1060");
         }
 
 
@@ -384,15 +397,13 @@ export class Renderer {
         this.device.queue.submit([commandEncoder.finish()]);
 
         // Log frame time
-        if(this.timestamps) {
-            /*const beginRenderTS = this.timestamps.getBufferEntry(0);
-            const endRenderTS = this.timestamps.getBufferEntry(3);
-
-            Promise.all([beginRenderTS, endRenderTS]).then(data => {
-                console.log("Frame time: " + (data[1] - data[0]) / 1000000 + " ms")
-            })
-            console.log(this.benchmark)*/
-            this.benchmark?.addEntry(this.timestamps);
+        if(this.benchmarkActive) {
+            if(this.benchmark?.isExpired()) {
+                this.benchmarkActive = false;
+            } else {
+                // @ts-ignore
+                this.benchmark?.addEntry(this.timestamps);
+            }
         }
     }
 
@@ -435,5 +446,15 @@ export class Renderer {
         }
         const cameraMat = new Float32Array([...this.camera.getViewProjectionMatrix()]);
         this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
+    }
+
+    public startBenchmark(time: number) {
+        console.log("starting benchmark for " + time + " seconds.")
+        if(!this.timestampsQueriesAllowed){
+            throw new Error("Timestamps queries not allowed by the browser.")
+        }
+        this.benchmarkActive = true;
+        // @ts-ignore
+        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060");
     }
 }

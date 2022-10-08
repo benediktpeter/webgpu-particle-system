@@ -30,7 +30,7 @@ export class BenchmarkLogger {
             return;
         }
 
-        const timestampEntries = await timestamps.getAllBufferEntries(); //todo: if await causes problems here retrieve buffer data in render function instead and give array to this function
+        const timestampEntries = await timestamps.getAllBufferEntries();
         const startComputeTime = timestampEntries[TimeStamps.START_COMPUTE_IDX];
         const endComputeTime = timestampEntries[TimeStamps.END_COMPUTE_IDX];
         const startRenderTime = timestampEntries[TimeStamps.START_RENDER_IDX];
@@ -43,7 +43,7 @@ export class BenchmarkLogger {
 
     public createFile() {
         console.log("creating file")
-        this.downloadFile("log_"+ this.gpu +"_" + this.numParticles + "particles" + (this.vertexPulling ? "_usingVertexPulling" : "_usingVertexBuffer") + ".csv", this.text);    //todo: name filename according to data (vertex pulling, num particles, gpu etc.)
+        this.downloadFile("log_"+ this.gpu +"_" + this.numParticles + "particles" + (this.vertexPulling ? "_usingVertexPulling" : "_usingInstancing") + ".csv", this.text);    //todo: name filename according to data (vertex pulling, num particles, gpu etc.)
     }
 
 
@@ -60,6 +60,8 @@ export class BenchmarkLogger {
         document.body.removeChild(element);
     }
 
-
+    public isExpired(): boolean {
+        return this.duration == 0;
+    }
 
 }
