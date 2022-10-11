@@ -42,7 +42,7 @@ export class Particles {
 
     private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
-            size: this._numParticles * Particles.INSTANCE_SIZE,
+            size: this._numParticles * Particles.INSTANCE_SIZE,     // INSTANCE_SIZE = 32
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
         this._simulationStartTime = performance.now();
@@ -137,6 +137,7 @@ export class Particles {
 
         this._device.queue.submit([commandEncoder.finish()])
     }
+
     public updateData(gui: ParticleGUI): void {
         // setting data that does not affect overall gpu and cpu pipeline
         this._minParticleLifetime = gui.guiData.minParticleLifetime;
@@ -152,7 +153,7 @@ export class Particles {
                 // copy data from the old buffer to the new one
                 const commandEncoder = this._device.createCommandEncoder();
                 commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
-                this._device.queue.submit([commandEncoder.finish()])
+                this._device.queue.submit([commandEncoder.finish()]);
             } else {
                 throw new Error("Particle Buffer now defined");
             }
@@ -162,6 +163,7 @@ export class Particles {
             this.createSimulationBindGroup() // recreate the bind group
         }
     }
+
     get numParticles(): number {
         return this._numParticles;
     }

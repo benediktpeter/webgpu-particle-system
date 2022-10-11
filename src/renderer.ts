@@ -386,7 +386,6 @@ export class Renderer {
                 this.previousNumParticles = this.particleSystem.numParticles;
             }
             renderPass.setBindGroup(1, this.particleBufferBindGroup as GPUBindGroup);
-
             renderPass.draw(<number>this.particleSystem?.numParticles * 6, 1, 0, 0);
             renderPass.end();
         }

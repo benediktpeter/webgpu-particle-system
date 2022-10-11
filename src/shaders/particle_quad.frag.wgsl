@@ -14,6 +14,7 @@ fn main(@location(0) uv: vec2<f32>, @location(1) lifetime: f32) -> @location(0) 
     var textureColor : vec4<f32> = textureSample(textureData, textureSampler, uv);
 
     if(lifetime <= 0) {
+        // expired or not yet spawned particles are invisible
         return vec4<f32>(0,0,0,0);
     }
 

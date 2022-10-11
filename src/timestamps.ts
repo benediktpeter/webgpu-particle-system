@@ -27,8 +27,15 @@ export class TimeStamps {
 
     }
 
-    public async getWholeBuffer() {
-        return await TimeStamps.readBuffer(this._device, this._queryBuffer);
+    public async getWholeBuffer() : Promise<ArrayBuffer>{
+        const size = this._queryBuffer.size;
+        const gpuReadBuffer = this._device.createBuffer({size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const copyEncoder = this._device.createCommandEncoder();
+        copyEncoder.copyBufferToBuffer(this._queryBuffer, 0, gpuReadBuffer, 0, size);
+        const copyCommands = copyEncoder.finish();
+        this._device.queue.submit([copyCommands]);
+        await gpuReadBuffer.mapAsync(GPUMapMode.READ);
+        return gpuReadBuffer.getMappedRange();
     }
 
     public async getBufferEntry(index: number) : Promise<number>{
@@ -54,20 +61,6 @@ export class TimeStamps {
     public resolveQuerySet(commandEncoder : GPUCommandEncoder){
         commandEncoder.resolveQuerySet(this.querySet,0, this.capacity, this.queryBuffer, 0);
     }
-
-    private static readBuffer = async(device: GPUDevice, buffer: GPUBuffer) => {
-        //todo: make non static, maybe inline
-        const size = buffer.size;
-        const gpuReadBuffer = device.createBuffer({size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        const copyEncoder = device.createCommandEncoder();
-        copyEncoder.copyBufferToBuffer(buffer, 0, gpuReadBuffer, 0, size);
-        const copyCommands = copyEncoder.finish();
-        device.queue.submit([copyCommands]);
-        await gpuReadBuffer.mapAsync(GPUMapMode.READ);
-        return gpuReadBuffer.getMappedRange();
-    }
-
-
     get capacity(): number {
         return this._capacity;
     }

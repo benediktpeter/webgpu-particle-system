@@ -4,7 +4,6 @@ import {Particles} from "./particles";
 export class ParticleGUI {
     gui = new dat.GUI();
     private _guiData = {
-        useCPU: false,
         vertexPulling: false,
 
         particleColor2: [252,118,39,255],

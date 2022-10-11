@@ -37,8 +37,8 @@ struct SimulationParams {
 
 @compute @workgroup_size(256)
 fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
-    let idx = GlobalInvocationID.x;
 
+    let idx = GlobalInvocationID.x;
     // load particle from buffer
     var particle = data.particles[idx];
 
