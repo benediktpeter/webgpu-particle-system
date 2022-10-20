@@ -5,3 +5,12 @@ h1 {
 .fpsCounter {
     font-family: sans-serif;
 }
+
+.benchmarking {
+    display: none;
+    font-family: sans-serif;
+}
+
+.benchmarking input[type=number] {
+    width: 50px;
+}

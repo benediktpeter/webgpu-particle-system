@@ -83,8 +83,10 @@ export class OrbitCamera {
         let currentY = event.clientY;
         if (event.buttons === 1) {
             let offsetX = (currentX - this._prevMouseX) * this.MOVE_FACTOR;
-            let offsetY = (currentY - this._prevMouseY) * this.MOVE_FACTOR;
-            offsetY = 0;
+
+            //let offsetY = (currentY - this._prevMouseY) * this.MOVE_FACTOR;
+            let offsetY = 0;
+
             this.rotate(0.0, offsetX, 0.0);
             this.rotate(offsetY, 0.0, 0.0);
         }

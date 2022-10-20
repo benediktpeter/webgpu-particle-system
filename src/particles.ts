@@ -3,6 +3,7 @@ import {ParticleGUI} from "./gui";
 
 import simulationComputeShader from './shaders/particle.simulation.wgsl'
 import {SimulationUniformBuffer} from "./simulationUniformBuffer";
+import {TimeStamps} from "./timestamps";
 
 export class Particles {
 
@@ -29,13 +30,19 @@ export class Particles {
     private _firstFrameMaxIdx: number = 0;
 
 
-    constructor(device: GPUDevice) {
+    private _timestamps?: TimeStamps;
+
+
+    constructor(device: GPUDevice, numParticles: number) {
         this._device = device;
+        this._numParticles = numParticles;
+
         this.initGPU();
     }
+
     private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
-            size: this._numParticles * Particles.INSTANCE_SIZE,
+            size: this._numParticles * Particles.INSTANCE_SIZE,     // INSTANCE_SIZE = 32
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
         this._simulationStartTime = performance.now();
@@ -94,6 +101,7 @@ export class Particles {
     }
 
     public update(deltaTime : number) : void {
+
         if (!this._simulationPipeline) {
             throw new Error("Simulation pipeline not defined")
         }
@@ -119,14 +127,17 @@ export class Particles {
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
+        this._timestamps?.writeTimestamp(commandEncoder,0);
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(this._simulationPipeline);
         passEncoder.setBindGroup(0, this._simulationBindGroup)
         passEncoder.dispatchWorkgroups(Math.ceil(this._numParticles / 256))
         passEncoder.end();
+        this._timestamps?.writeTimestamp(commandEncoder,1);
 
         this._device.queue.submit([commandEncoder.finish()])
     }
+
     public updateData(gui: ParticleGUI): void {
         // setting data that does not affect overall gpu and cpu pipeline
         this._minParticleLifetime = gui.guiData.minParticleLifetime;
@@ -142,7 +153,7 @@ export class Particles {
                 // copy data from the old buffer to the new one
                 const commandEncoder = this._device.createCommandEncoder();
                 commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
-                this._device.queue.submit([commandEncoder.finish()])
+                this._device.queue.submit([commandEncoder.finish()]);
             } else {
                 throw new Error("Particle Buffer now defined");
             }
@@ -152,6 +163,7 @@ export class Particles {
             this.createSimulationBindGroup() // recreate the bind group
         }
     }
+
     get numParticles(): number {
         return this._numParticles;
     }
@@ -186,5 +198,9 @@ export class Particles {
 
     set maxNumParticlesSpawnPerSecond(value: number) {
         this._maxNumParticlesSpawnPerSecond = value;
+    }
+
+    set timestamps(value: TimeStamps) {
+        this._timestamps = value;
     }
 }

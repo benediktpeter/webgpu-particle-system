@@ -10,6 +10,8 @@ import {ParticleGUI} from "./gui";
 import {vec3FromArray, vec3ToColor} from "./utils";
 import {OrbitCamera} from "./orbitCamera";
 import {FpsCounter} from "./fpsCounter";
+import {TimeStamps} from "./timestamps";
+import {BenchmarkLogger} from "./benchmarkLogger";
 
 export class Renderer {
     lastTime: number = 0.0;
@@ -39,6 +41,12 @@ export class Renderer {
 
     private fpsCounter?: FpsCounter;
 
+    private timestamps?: TimeStamps;
+    private timestampsQueriesAllowed: boolean = false;
+    private benchmarkActive: boolean = false;
+    private benchmark?: BenchmarkLogger;
+    private gui?: ParticleGUI;
+
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -60,17 +68,58 @@ export class Renderer {
         }
     }
 
-    public initRenderer = async () => {
+
+    public initRenderer = async (gui: ParticleGUI) => {
+        this.gui = gui;
+
         const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
-        const deviceDescriptor = {
+
+		let deviceDescriptor : GPUDeviceDescriptor = {
             requiredLimits: {
                 maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
             },
+			requiredFeatures: ["timestamp-query"]
         };
-        this.device = await adapter?.requestDevice(deviceDescriptor) as GPUDevice;
+
+
+        try {
+            // If timestamp queries are not allowed in the browser, this will throw an exception
+            this.device = await adapter.requestDevice(deviceDescriptor);
+            this.timestamps = new TimeStamps(this.device);
+            this.timestampsQueriesAllowed = true;
+
+            // make the benchmark div visible if timestamp queries are possible
+            const benchmarkDiv = document.getElementById("benchmark");
+            // @ts-ignore
+            benchmarkDiv.style.display = "block";
+
+            // add callback to button
+            const buttonElement = document.getElementById("benchmark-button");
+            const self = this;
+            // @ts-ignore
+            buttonElement.onclick = function(ev) {
+                const duration = (<HTMLInputElement>document.getElementById("benchmark-duration")).value;
+                self.startBenchmark(Number(duration));
+            };
+
+        } catch (error) {
+            console.log("Timestamp queries not supported by this browser.")
+            this.device = null;
+        } finally {
+            // if timestamp queries are not available, request the device without requiring timestamp-queries
+            if (!this.device) {
+				deviceDescriptor = {
+					requiredLimits: {
+						maxStorageBufferBindingSize : 512 * 1024 * 1024,    // 512mb
+					}
+				};
+                this.device = await adapter.requestDevice(deviceDescriptor);
+			}
+        }
+
         this.context = canvas.getContext('webgpu') as GPUCanvasContext;
         this.format = 'bgra8unorm';
         this.context.configure({
@@ -187,7 +236,13 @@ export class Renderer {
         });
         this.writeCameraBuffer();
 
-        this.particleSystem = new Particles(this.device);
+
+        // @ts-ignore
+        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
+        if(this.timestamps) {
+            this.particleSystem.timestamps = this.timestamps;
+        }
+
 
         const particleTexture = await loadTexture(this.device, "circle_05.png");
         this.uniformBindGroup = this.device.createBindGroup({
@@ -298,7 +353,11 @@ export class Renderer {
 
         // render
         const commandEncoder = this.device.createCommandEncoder();
+        if(this.timestamps) {
+            this.timestamps.writeTimestamp(commandEncoder, 2);
+        }
         const textureView = this.context.getCurrentTexture().createView();
+
         const renderPass = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
@@ -327,12 +386,25 @@ export class Renderer {
                 this.previousNumParticles = this.particleSystem.numParticles;
             }
             renderPass.setBindGroup(1, this.particleBufferBindGroup as GPUBindGroup);
-
             renderPass.draw(<number>this.particleSystem?.numParticles * 6, 1, 0, 0);
             renderPass.end();
         }
+        if(this.timestamps) {
+            this.timestamps?.writeTimestamp(commandEncoder,3);
+            this.timestamps.resolveQuerySet(commandEncoder);
+        }
 
         this.device.queue.submit([commandEncoder.finish()]);
+
+        // Log frame time
+        if(this.benchmarkActive) {
+            if(this.benchmark?.isExpired()) {
+                this.benchmarkActive = false;
+            } else {
+                // @ts-ignore
+                this.benchmark?.addEntry(this.timestamps);
+            }
+        }
     }
 
     public frame() {
@@ -374,5 +446,15 @@ export class Renderer {
         }
         const cameraMat = new Float32Array([...this.camera.getViewProjectionMatrix()]);
         this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
+    }
+
+    public startBenchmark(time: number) {
+        console.log("starting benchmark for " + time + " seconds.")
+        if(!this.timestampsQueriesAllowed){
+            throw new Error("Timestamps queries not allowed by the browser.")
+        }
+        this.benchmarkActive = true;
+        // @ts-ignore
+        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060");
     }
 }

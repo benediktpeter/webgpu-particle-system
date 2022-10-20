@@ -78,5 +78,10 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
             output.position = vec4<f32>(transformedPosition.x + quadPos[quadVertIdx].x, transformedPosition.y + quadPos[quadVertIdx].y, transformedPosition.z, 1.0);
             output.uv = uvs[quadVertIdx];
             output.lifetime = particleLifetime;
+
+            if (output.lifetime <= 0) {
+                output.position = vec4<f32>(10.0, 10.0, 10.0, 1.0); // discard expired particles
+            }
+
             return output;
 }

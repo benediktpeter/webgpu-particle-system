@@ -11,11 +11,11 @@ function frame() {
     requestAnimationFrame(frame);
 }
 
-function setupAndRenderTestQuad() {
+function setupRendererAndStartAnimation() {
     renderer.initCheck()
-        .then(() => renderer.initRenderer()
+        .then(() => renderer.initRenderer(gui)
             .then(() => requestAnimationFrame(frame))
         );
 }
 
-setupAndRenderTestQuad()
+setupRendererAndStartAnimation()
