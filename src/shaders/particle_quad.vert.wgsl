@@ -72,10 +72,10 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
             );
 
 
-            var transformedPosition : vec4<f32> = camera.viewProjectionMatrix * vec4<f32>(particlePos, 1.0);
-
+            var posPlusQuad = vec4<f32>(particlePos.x + quadPos[quadVertIdx].x, particlePos.y + quadPos[quadVertIdx].y, particlePos.z, 1.0);
+            
             var output: VertexOutput;
-            output.position = vec4<f32>(transformedPosition.x + quadPos[quadVertIdx].x, transformedPosition.y + quadPos[quadVertIdx].y, transformedPosition.z, 1.0);
+            output.position = camera.viewProjectionMatrix * posPlusQuad;
             output.uv = uvs[quadVertIdx];
             output.lifetime = particleLifetime;
 
