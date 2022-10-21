@@ -229,7 +229,7 @@ export class Renderer {
 
         this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
         this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0, 0.2);
-        this.camera = new OrbitCamera([0,0,-1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
+        this.camera = new OrbitCamera([0,0,1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
         this.cameraUniformBuffer = this.device.createBuffer({
             size: 16*4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,

@@ -12,8 +12,8 @@ export class OrbitCamera {
     _viewMatrix: mat4 = mat4.create();
 
     readonly ZOOM_FACTOR = 0.001;
-    readonly MAX_ZOOM = 500;
-    readonly MIN_ZOOM = 0.01;
+    readonly MAX_ZOOM = 10;
+    readonly MIN_ZOOM = 0.1;
     readonly MOVE_FACTOR = 1.0;
 
     private _prevMouseX: number = 0;
@@ -49,7 +49,6 @@ export class OrbitCamera {
         this._position[2] += deltaY * this.ZOOM_FACTOR;
         this._position[2] = Math.min(this.MAX_ZOOM, this._position[2]);
         this._position[2] = Math.max(this.MIN_ZOOM, this._position[2]);
-        console.log(this._position)
     }
 
     private updateViewMatrix() {
