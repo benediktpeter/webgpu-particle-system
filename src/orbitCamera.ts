@@ -39,6 +39,7 @@ export class OrbitCamera {
 
     public getViewProjectionMatrix() : mat4 {
         this.updateViewMatrix()
+
         let viewProjectionMatrix = mat4.create();
         mat4.multiply(viewProjectionMatrix, this._projectionMatrix, this._viewMatrix);
         return viewProjectionMatrix;
