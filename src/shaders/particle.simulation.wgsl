@@ -52,10 +52,7 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
         particle.position = params.origin;
 
         var velocityAbs = params.initialVelocity;
-        var velocityVar = (rand(vec2<f32>(-f32(idx), params.randSeed)) - 0.5) * (velocityAbs * 0.3);
-        velocityAbs = velocityAbs + velocityVar;
-
-        velocityAbs = velocityAbs * (rand(vec2<f32>(params.randSeed, f32(idx)) - 0.5));    // velocity += 50% => v * (r - 1/2)
+        velocityAbs = velocityAbs * (rand(vec2<f32>(params.randSeed, f32(idx)) - 0.5));    // add randomness to velocity
         particle.velocity = vec3<f32>(0,0,0);
         particle.velocity = randUnitVec3(params.randSeed, f32(idx)) * velocityAbs;
     }
