@@ -2,12 +2,17 @@ fn rand(seed : vec2<f32>) -> f32 {
 	return fract(sin(dot(seed, vec2<f32>(12.9898, 4.1414))) * 43758.5453);
 }
 
+fn rand1(seed: vec2<f32>) -> f32 {
+    let randU = rand(seed) * 2 - 1;
+    return randU / cos(randU);
+}
+
 fn randUnitVec3(seed: f32, idx: f32) -> vec3<f32> {
     var result = vec3<f32>();
-    result.x = rand(vec2<f32>(seed*idx, seed));
-    result.y = rand(vec2<f32>(result.x, idx));
-    result.z = rand(vec2<f32>(idx, result.y));
-    result = (result * 2) - 1;
+    result.x = rand1(vec2<f32>(seed*idx, seed));
+    result.y = rand1(vec2<f32>(result.x, idx));
+    result.z = rand1(vec2<f32>(idx, result.y));
+    //result = (result * 2) - 1;
     return normalize(result);
 }
 
