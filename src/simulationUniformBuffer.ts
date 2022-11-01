@@ -1,11 +1,11 @@
-import {vec3} from "gl-matrix";
+import {vec3, vec4} from "gl-matrix";
 
 export class SimulationUniformBuffer {
 
     private readonly _uniformBuffer : GPUBuffer;
     private _device: GPUDevice;
 
-    private readonly _bufferSize = 4 + 3*4 + 3*4 + 4 + 4 + 4 + 4 + 4;    // f32 deltatime, v3 gravity, v3 origin, minlifetime f23, maxlifetime f32, initialVelocity: f32, randSeed: f32, maxidx: u32
+    private readonly _bufferSize = 84;
 
     private readonly DELTATIME_OFFSET = 0;
     private readonly GRAVITY_OFFSET = 16;
@@ -14,7 +14,7 @@ export class SimulationUniformBuffer {
     private readonly MAX_LIFETIME_OFFSET = this.MIN_LIFETIME_OFFSET + 4;
     private readonly INITIAL_VELOCITY_OFFSET = this.MAX_LIFETIME_OFFSET + 4;
     private readonly RAND_SEED_OFFSET = this.INITIAL_VELOCITY_OFFSET + 4;
-    private readonly MAX_IDX_OFFSET = this.RAND_SEED_OFFSET + 4;
+    private readonly MAX_IDX_OFFSET = this.RAND_SEED_OFFSET + 16;
 
 
     constructor(device: GPUDevice) {
@@ -41,6 +41,7 @@ export class SimulationUniformBuffer {
 
     public setGravity(gravity: vec3) : void {
         this._device.queue.writeBuffer(this._uniformBuffer, this.GRAVITY_OFFSET, Float32Array.from(gravity) as ArrayBuffer);    //this conversion prevents an overload error
+        //this._device.queue.writeBuffer(this._uniformBuffer, this.GRAVITY_OFFSET, Float32Array.from([0,0,0]) as ArrayBuffer);
     }
 
     public setOrigin(origin : vec3) : void {
@@ -59,8 +60,8 @@ export class SimulationUniformBuffer {
         this._device.queue.writeBuffer(this._uniformBuffer, this.INITIAL_VELOCITY_OFFSET, Float32Array.of(initialVelocity));
     }
 
-    public setRandSeed(seed: number) : void {
-        this._device.queue.writeBuffer(this._uniformBuffer, this.RAND_SEED_OFFSET, Float32Array.of(seed));
+    public setRandSeed(seed: vec4) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.RAND_SEED_OFFSET, Float32Array.from(seed) as ArrayBuffer);
     }
 
     public setMaxIdx(maxIdx: number) : void {

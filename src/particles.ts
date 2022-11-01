@@ -1,4 +1,4 @@
-import {vec3} from 'gl-matrix';
+import {vec3, vec4} from 'gl-matrix';
 import {ParticleGUI} from "./gui";
 
 import simulationComputeShader from './shaders/particle.simulation.wgsl'
@@ -8,7 +8,7 @@ import {TimeStamps} from "./timestamps";
 export class Particles {
 
     public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4;    // vec3 position, float lifetime, vec3 velocity, padding
-    public static readonly MAX_NUM_PARTICLES = 16776960; //Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
+    public static readonly MAX_NUM_PARTICLES = 16776960; // Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
 
     private _numParticles: number = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
@@ -28,7 +28,6 @@ export class Particles {
     private _simulationStartTime: any;
     private _simulationMaxIdx: number = 0;
     private _firstFrameMaxIdx: number = 0;
-
 
     private _timestamps?: TimeStamps;
 
@@ -116,8 +115,7 @@ export class Particles {
         this._simulationUniformBuffer?.setGravity(this._gravity);
         this._simulationUniformBuffer?.setOrigin(this._originPos);
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
-        const seed = (Math.random() - 0.5) * 2;
-        this._simulationUniformBuffer?.setRandSeed(seed);
+        this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
         if (this._simulationStartTime && (performance.now() - this._simulationStartTime) < 1000) {
             this._simulationMaxIdx += (this._numParticles - this._firstFrameMaxIdx) * 0.95 * deltaTime;
             this._simulationUniformBuffer?.setMaxIdx(this._simulationMaxIdx);
