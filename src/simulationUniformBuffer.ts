@@ -40,8 +40,7 @@ export class SimulationUniformBuffer {
     }
 
     public setGravity(gravity: vec3) : void {
-        this._device.queue.writeBuffer(this._uniformBuffer, this.GRAVITY_OFFSET, Float32Array.from(gravity) as ArrayBuffer);    //this conversion prevents an overload error
-        //this._device.queue.writeBuffer(this._uniformBuffer, this.GRAVITY_OFFSET, Float32Array.from([0,0,0]) as ArrayBuffer);
+        this._device.queue.writeBuffer(this._uniformBuffer, this.GRAVITY_OFFSET, Float32Array.from(gravity) as ArrayBuffer);
     }
 
     public setOrigin(origin : vec3) : void {

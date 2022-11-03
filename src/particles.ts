@@ -25,11 +25,14 @@ export class Particles {
     private _simulationUniformBuffer?: SimulationUniformBuffer;
     private _simulationBindGroup?: GPUBindGroup;
 
+    private _spawnCounterBuffer?: GPUBuffer;
+
     private _simulationStartTime: any;
-    private _simulationMaxIdx: number = 0;
+    private _simulationMaxIdx: number = 0;  //todo: repurpose these if counter works
     private _firstFrameMaxIdx: number = 0;
 
     private _timestamps?: TimeStamps;
+
 
 
     constructor(device: GPUDevice, numParticles: number) {
@@ -54,6 +57,10 @@ export class Particles {
 
         this.createGPUParticleBuffer();
         this._simulationUniformBuffer = new SimulationUniformBuffer(this._device);
+        this._spawnCounterBuffer = this._device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        })
 
         // create compute shader pipeline
         const computePipelineDescr : GPUComputePipelineDescriptor = {
@@ -75,6 +82,9 @@ export class Particles {
         if(!this._simulationPipeline || !this._simulationUniformBuffer) {
             throw new Error("simulation pipeline or uniform buffer not defined")
         }
+        if(!this._spawnCounterBuffer) {
+            throw new Error("spawn counter buffer not defined")
+        }
         const bindGroupDescr: GPUBindGroupDescriptor = {
             layout: this._simulationPipeline.getBindGroupLayout(0),
             entries: [
@@ -93,6 +103,14 @@ export class Particles {
                         offset: 0,
                         size: this._simulationUniformBuffer.bufferSize
                     }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: this._spawnCounterBuffer,
+                        offset: 0,
+                        size: this._spawnCounterBuffer?.size
+                    }
                 }
             ]
         }
@@ -106,6 +124,11 @@ export class Particles {
         }
         if (!this._simulationBindGroup) {
             throw new Error("Simulation bind group not defined")
+        }
+
+        // set spawn counter to 0
+        if(this._spawnCounterBuffer) {
+            this._device.queue.writeBuffer(this._spawnCounterBuffer, 0, Float32Array.of(0),0);
         }
 
         // update uniform data

@@ -54,9 +54,11 @@ struct SimulationParams {
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
+
 //todo: implement
-//@binding(2) @group(0) var<storage, read_write> data : NonAtomicCounter;
-//@binding(3) @group(0) var<storage, read_write> data : AtomicCounter;
+@binding(2) @group(0) var<storage, read_write> spawnCounter : atomic<u32>;
+//@binding(3) @group(0) var<storage, read_write> data : NonAtomicCounter;
+
 
 @binding(1) @group(0) var<uniform> params : SimulationParams;
 
@@ -71,9 +73,10 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     var particle = data.particles[idx];
 
     //reset expired particles
-    if (particle.lifetime <= 0) {
+    if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < 1000) {
+        atomicAdd(&spawnCounter, 1);
         if(params.maxIdx != 0 && idx > params.maxIdx) {
-            return;
+            //return;
         }
 
         particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
