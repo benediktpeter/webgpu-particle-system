@@ -50,7 +50,8 @@ struct SimulationParams {
     maxLifetime: f32,
     initialVelocity: f32,
     seed: vec4<f32>,
-    maxIdx: u32
+    maxSpawnCount: u32,
+    useSpawnCap: u32    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
@@ -73,7 +74,9 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     var particle = data.particles[idx];
 
     //reset expired particles
-    if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < params.maxIdx) {
+    let spawnLimitReached = params.useSpawnCap != 0 && atomicLoad(&spawnCounter) >= params.maxSpawnCount;
+    //if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < params.maxSpawnCount) {
+    if (particle.lifetime <= 0 && !spawnLimitReached) {
         atomicAdd(&spawnCounter, 1);
 
         particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();

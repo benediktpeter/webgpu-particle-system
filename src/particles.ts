@@ -31,7 +31,6 @@ export class Particles {
     private _timestamps?: TimeStamps;
 
 
-
     constructor(device: GPUDevice, numParticles: number) {
         this._device = device;
         this._numParticles = numParticles;
@@ -136,6 +135,7 @@ export class Particles {
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
         this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor(100000 * deltaTime) + 1);
+        this._simulationUniformBuffer?.setUseSpawnCap(true);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();

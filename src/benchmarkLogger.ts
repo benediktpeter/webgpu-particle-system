@@ -37,7 +37,7 @@ export class BenchmarkLogger {
         const endRenderTime = timestampEntries[TimeStamps.END_RENDER_IDX];
 
         // Note: time values in nanoseconds
-        this.text += "\n" + startComputeTime + "," + endComputeTime + "," + startRenderTime + "," + endRenderTime; // + "," + next...
+        this.text += "\n" + startComputeTime + "," + endComputeTime + "," + startRenderTime + "," + endRenderTime;
     }
 
 
