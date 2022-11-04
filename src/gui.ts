@@ -14,13 +14,16 @@ export class ParticleGUI {
         maxParticleLifetime: 5,
         particleHeight: 15,
         particleWidth: 15,
-        particleBrightness: 0.2
+        particleBrightness: 0.2,
+
+        useSpawnCap: true
     }
 
     constructor() {
         this.gui.remember(this._guiData);
 
         this.gui.add(this._guiData, "vertexPulling");
+        this.gui.add(this._guiData, "useSpawnCap");
 
         this.gui.add(this._guiData, "particleHeight");
         this.gui.add(this._guiData, "particleWidth");

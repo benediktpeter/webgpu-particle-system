@@ -17,6 +17,7 @@ export class Particles {
     private _maxParticleLifetime: number = 5;
     private _gravity: vec3 = [0,-1,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
+    private _useSpawnCap: boolean = true;
 
     private readonly _device : GPUDevice;
 
@@ -135,7 +136,7 @@ export class Particles {
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
         this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor(100000 * deltaTime) + 1);
-        this._simulationUniformBuffer?.setUseSpawnCap(true);
+        this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
@@ -154,6 +155,7 @@ export class Particles {
         // setting data that does not affect overall gpu and cpu pipeline
         this._minParticleLifetime = gui.guiData.minParticleLifetime;
         this._maxParticleLifetime = gui.guiData.maxParticleLifetime;
+        this._useSpawnCap = gui.guiData.useSpawnCap;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;
