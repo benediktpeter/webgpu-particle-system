@@ -14,7 +14,7 @@ export class SimulationUniformBuffer {
     private readonly MAX_LIFETIME_OFFSET = this.MIN_LIFETIME_OFFSET + 4;
     private readonly INITIAL_VELOCITY_OFFSET = this.MAX_LIFETIME_OFFSET + 4;
     private readonly RAND_SEED_OFFSET = this.INITIAL_VELOCITY_OFFSET + 4;
-    private readonly MAX_IDX_OFFSET = this.RAND_SEED_OFFSET + 16;
+    private readonly MAX_SPAWN_COUNT_OFFSET = this.RAND_SEED_OFFSET + 24;
 
 
     constructor(device: GPUDevice) {
@@ -63,9 +63,7 @@ export class SimulationUniformBuffer {
         this._device.queue.writeBuffer(this._uniformBuffer, this.RAND_SEED_OFFSET, Float32Array.from(seed) as ArrayBuffer);
     }
 
-    public setMaxIdx(maxIdx: number) : void {
-        if (maxIdx < 0 || maxIdx > Math.floor(0x7FFFFFF / 32))
-            maxIdx = 0;
-        this._device.queue.writeBuffer(this._uniformBuffer, this.MAX_IDX_OFFSET, Uint32Array.of(maxIdx));
+    public setMaxSpawnCount(maxSpawnCount: number) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.MAX_SPAWN_COUNT_OFFSET, Uint32Array.of(maxSpawnCount));
     }
 }

@@ -73,11 +73,8 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     var particle = data.particles[idx];
 
     //reset expired particles
-    if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < 1000) {
+    if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < params.maxIdx) {
         atomicAdd(&spawnCounter, 1);
-        if(params.maxIdx != 0 && idx > params.maxIdx) {
-            //return;
-        }
 
         particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
         particle.position = params.origin;

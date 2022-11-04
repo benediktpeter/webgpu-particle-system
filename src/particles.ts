@@ -28,9 +28,6 @@ export class Particles {
     private _spawnCounterBuffer?: GPUBuffer;
 
     private _simulationStartTime: any;
-    private _simulationMaxIdx: number = 0;  //todo: repurpose these if counter works
-    private _firstFrameMaxIdx: number = 0;
-
     private _timestamps?: TimeStamps;
 
 
@@ -48,8 +45,6 @@ export class Particles {
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
         this._simulationStartTime = performance.now();
-        this._firstFrameMaxIdx = this._numParticles / (this._maxParticleLifetime - this._minParticleLifetime) * 2.5 + 1;
-        this._simulationMaxIdx = this._firstFrameMaxIdx;
     }
 
     private initGPU() {
@@ -139,12 +134,8 @@ export class Particles {
         this._simulationUniformBuffer?.setOrigin(this._originPos);
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
-        if (this._simulationStartTime && (performance.now() - this._simulationStartTime) < 1000) {
-            this._simulationMaxIdx += (this._numParticles - this._firstFrameMaxIdx) * 0.95 * deltaTime;
-            this._simulationUniformBuffer?.setMaxIdx(this._simulationMaxIdx);
-        } else {
-            this._simulationUniformBuffer?.setMaxIdx(0);
-        }
+
+        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor(100000 * deltaTime) + 1);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
