@@ -18,6 +18,7 @@ export class Particles {
     private _gravity: vec3 = [0,-1,0]
     private _maxNumParticlesSpawnPerSecond: number = 80;
     private _useSpawnCap: boolean = true;
+    private _useBufferAliasing: boolean = true;
 
     private readonly _device : GPUDevice;
 
@@ -106,6 +107,14 @@ export class Particles {
                         offset: 0,
                         size: this._spawnCounterBuffer?.size
                     }
+                },
+                {
+                    binding: 3,
+                    resource: {
+                        buffer: this._spawnCounterBuffer,
+                        offset: 0,
+                        size: this._spawnCounterBuffer?.size
+                    }
                 }
             ]
         }
@@ -135,8 +144,10 @@ export class Particles {
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
-        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor(100000 * deltaTime) + 1);
+        const averageLifetime = (this._minParticleLifetime + this._maxParticleLifetime) / 2.0;
+        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor((this.numParticles / (averageLifetime * 1.5)) * deltaTime) + 1);
         this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap);
+        this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
@@ -156,6 +167,7 @@ export class Particles {
         this._minParticleLifetime = gui.guiData.minParticleLifetime;
         this._maxParticleLifetime = gui.guiData.maxParticleLifetime;
         this._useSpawnCap = gui.guiData.useSpawnCap;
+        this._useBufferAliasing = gui.guiData.useBufferAliasing;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;

@@ -51,14 +51,15 @@ struct SimulationParams {
     initialVelocity: f32,
     seed: vec4<f32>,
     maxSpawnCount: u32,
-    useSpawnCap: u32    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
+    useSpawnCap: u32,    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
+    useAliasedSpawnCount: u32
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
 
 //todo: implement
 @binding(2) @group(0) var<storage, read_write> spawnCounter : atomic<u32>;
-//@binding(3) @group(0) var<storage, read_write> data : NonAtomicCounter;
+@binding(3) @group(0) var<storage, read_write> spawnCounterNonAtomic : u32;
 
 
 @binding(1) @group(0) var<uniform> params : SimulationParams;
@@ -74,8 +75,13 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     var particle = data.particles[idx];
 
     //reset expired particles
-    let spawnLimitReached = params.useSpawnCap != 0 && atomicLoad(&spawnCounter) >= params.maxSpawnCount;
-    //if (particle.lifetime <= 0 && atomicLoad(&spawnCounter) < params.maxSpawnCount) {
+    var spawnLimitReached = false;
+    if(params.useAliasedSpawnCount == 0){
+        spawnLimitReached = params.useSpawnCap != 0 && atomicLoad(&spawnCounter) >= params.maxSpawnCount;
+    } else {
+        spawnLimitReached = params.useSpawnCap != 0 && spawnCounterNonAtomic >= params.maxSpawnCount;
+    }
+
     if (particle.lifetime <= 0 && !spawnLimitReached) {
         atomicAdd(&spawnCounter, 1);
 

@@ -16,7 +16,8 @@ export class ParticleGUI {
         particleWidth: 15,
         particleBrightness: 0.2,
 
-        useSpawnCap: true
+        useSpawnCap: true,
+        useBufferAliasing: true
     }
 
     constructor() {
@@ -24,6 +25,7 @@ export class ParticleGUI {
 
         this.gui.add(this._guiData, "vertexPulling");
         this.gui.add(this._guiData, "useSpawnCap");
+        this.gui.add(this._guiData, "useBufferAliasing");
 
         this.gui.add(this._guiData, "particleHeight");
         this.gui.add(this._guiData, "particleWidth");
