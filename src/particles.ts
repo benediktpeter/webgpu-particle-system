@@ -28,6 +28,7 @@ export class Particles {
     private _simulationBindGroup?: GPUBindGroup;
 
     private _spawnCounterBuffer?: GPUBuffer;
+    private _spawnCap: number = 1;
 
     private _simulationStartTime: any;
     private _timestamps?: TimeStamps;
@@ -144,9 +145,9 @@ export class Particles {
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
-        const averageLifetime = (this._minParticleLifetime + this._maxParticleLifetime) / 2.0;
-        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor((this.numParticles / (averageLifetime * 1.5)) * deltaTime) + 1);
-        this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap);
+        this._spawnCap += this._numParticles * 0.001 * deltaTime;
+        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
+        this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
         this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
 
         // compute pass
