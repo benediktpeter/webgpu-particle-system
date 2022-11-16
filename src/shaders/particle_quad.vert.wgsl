@@ -71,9 +71,9 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
                 vec2<f32>(0, 1)    //tl
             );
 
+            // the camera's up and right vector are required to make the quads always face the camera
             let cameraRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
             let cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
-
 
             var posPlusQuad = particlePos;
             posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);

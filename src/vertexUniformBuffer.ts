@@ -1,6 +1,5 @@
 export class VertexUniformBuffer {
 
-
     private readonly _uniformBuffer : GPUBuffer;
 
     private _bufferSize = 4 + 4; //float, float
@@ -10,7 +9,6 @@ export class VertexUniformBuffer {
     private _canvasHeight : number;
     private _canvasWidth : number;
     private _device: GPUDevice;
-
 
     constructor(device: GPUDevice, canvasHeight: number, canvasWidth: number, height: number = 5, width: number = 5) {
         if(canvasHeight <= 0 || canvasWidth <= 0) {

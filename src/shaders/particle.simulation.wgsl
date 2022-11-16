@@ -1,31 +1,21 @@
-/*
-fn randOld(seed : vec2<f32>) -> f32 {
-	return fract(sin(dot(seed, vec2<f32>(12.9898, 4.1414))) * 43758.5453);
-}
-*/
-
-/*fn rand1(seed: vec2<f32>) -> f32 {
-    let randU = rand(seed) * 2 - 1;
-    return randU / cos(randU);
-}*/
-
-//TODO: reference to austin eng
 var<private> rand_seed : vec2<f32>;
 
+// This random number generator function was taken from https://github.com/austinEng/webgpu-samples
 fn rand() -> f32 {
   rand_seed.x = fract(cos(dot(rand_seed, vec2<f32>(23.14077926, 232.61690225))) * 136.8168);
   rand_seed.y = fract(cos(dot(rand_seed, vec2<f32>(54.47856553, 345.84153136))) * 534.7645);
   return rand_seed.y;
 }
 
-fn randUnitVec3(/*seed: f32, idx: f32*/) -> vec3<f32> {
+fn randUnitVec3() -> vec3<f32> {
     var result = vec3<f32>();
 
     result.x = rand() * 2 - 1;
     result.y = rand() * 2 - 1;
     result.z = rand() * 2 - 1;
 
-    result.x /= cos(result.x);  //todo: reference
+    // divide coordinates with their own cosinus to make the direction seemingly uniform (rather than clustering at edges)
+    result.x /= cos(result.x);
     result.y /= cos(result.y);
     result.z /= cos(result.z);
 
@@ -57,10 +47,9 @@ struct SimulationParams {
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
 
-//todo: implement
+// spawnCounter and spawCounterNonAtomic are both bound to the same buffer to allow non-atomic access to the counter
 @binding(2) @group(0) var<storage, read_write> spawnCounter : atomic<u32>;
 @binding(3) @group(0) var<storage, read_write> spawnCounterNonAtomic : u32;
-
 
 @binding(1) @group(0) var<uniform> params : SimulationParams;
 

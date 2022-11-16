@@ -4,9 +4,6 @@ declare module '*.module.css' {
   const styles: { [className: string]: string };
   export default styles;
 }
-/*interface HTMLCanvasElement extends HTMLElement {
-  getContext(contextId: 'webgpu'): GPUPresentationContext | null;
-}*/
 
 declare const __SOURCE__: string;
 

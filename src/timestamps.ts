@@ -24,7 +24,6 @@ export class TimeStamps {
                 | GPUBufferUsage.COPY_SRC
                 | GPUBufferUsage.COPY_DST,
         });
-
     }
 
     public async getWholeBuffer() : Promise<ArrayBuffer>{
