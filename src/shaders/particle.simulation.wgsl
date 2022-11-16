@@ -1,6 +1,7 @@
 var<private> rand_seed : vec2<f32>;
 
 // This random number generator function was taken from https://github.com/austinEng/webgpu-samples
+// Copyright 2019 WebGPU Samples Contributors
 fn rand() -> f32 {
   rand_seed.x = fract(cos(dot(rand_seed, vec2<f32>(23.14077926, 232.61690225))) * 136.8168);
   rand_seed.y = fract(cos(dot(rand_seed, vec2<f32>(54.47856553, 345.84153136))) * 534.7645);
