@@ -455,6 +455,6 @@ export class Renderer {
         }
         this.benchmarkActive = true;
         // @ts-ignore
-        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060");
+        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060", this.gui?.guiData.particleWidth, this.gui?.guiData.particleHeight);
     }
 }

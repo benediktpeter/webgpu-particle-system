@@ -7,11 +7,13 @@ export class BenchmarkLogger {
     private startTimestamp: number;
 
     private numParticles: number;
+    private particleWidth: number;
+    private particleHeight: number;
     private vertexPulling: boolean;
     private gpu: string;
     private other: string;
 
-    constructor(duration: number, numParticles: number, vertexPulling: boolean, gpu: string, other?: string) {
+    constructor(duration: number, numParticles: number, vertexPulling: boolean, gpu: string, particleWidth: number, particleHeight: number, other?: string) {
         this.duration = duration;
         this.startTimestamp = performance.now();
 
@@ -20,6 +22,8 @@ export class BenchmarkLogger {
         this.vertexPulling = vertexPulling;
         this.gpu = gpu;
         this.other = other == undefined ? "" : other;
+        this.particleHeight = particleHeight;
+        this.particleWidth = particleWidth;
     }
 
     public async addEntry(timestamps: TimeStamps) {
@@ -43,7 +47,7 @@ export class BenchmarkLogger {
 
     public createFile() {
         console.log("creating file")
-        this.downloadFile("log_"+ this.gpu +"_" + this.numParticles + "particles" + (this.vertexPulling ? "_usingVertexPulling" : "_usingInstancing") + ".csv", this.text);    //todo: name filename according to data (vertex pulling, num particles, gpu etc.)
+        this.downloadFile("log_"+ this.gpu +"_" + this.numParticles + "particles" + this.particleHeight + "x" + this.particleWidth + (this.vertexPulling ? "_usingVertexPulling" : "_usingInstancing") +".csv", this.text);
     }
 
 
