@@ -47,6 +47,7 @@ export class Renderer {
     private benchmark?: BenchmarkLogger;
     private gui?: ParticleGUI;
 
+    private textureName: string = "";
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -244,7 +245,13 @@ export class Renderer {
         }
 
 
-        const particleTexture = await loadTexture(this.device, "circle_05.png");
+        await this.createUniformBindGroups("circle_05.png");
+
+        this.createParticleBufferBindGroup()
+    }
+
+    private async createUniformBindGroups(textureFilePath: string) {
+        const particleTexture = await loadTexture(this.device, textureFilePath);
         this.uniformBindGroup = this.device.createBindGroup({
             layout: this.particleRenderPipelineInstancing.getBindGroupLayout(0),
             entries: [
@@ -269,7 +276,7 @@ export class Renderer {
                     resource: {
                         buffer: this.cameraUniformBuffer,
                         offset: 0,
-                        size: 16*4
+                        size: 16 * 4
                     }
                 },
                 {
@@ -284,7 +291,9 @@ export class Renderer {
         });
 
 
+
         this.uniformBindGroupVP = this.device.createBindGroup({
+            // @ts-ignore
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(0),
             entries: [
                 {
@@ -308,7 +317,7 @@ export class Renderer {
                     resource: {
                         buffer: this.cameraUniformBuffer,
                         offset: 0,
-                        size: 16*4
+                        size: 16 * 4
                     }
                 },
                 {
@@ -321,8 +330,6 @@ export class Renderer {
                 }
             ]
         });
-
-        this.createParticleBufferBindGroup()
     }
 
     private createParticleBufferBindGroup() {
@@ -407,7 +414,7 @@ export class Renderer {
         }
     }
 
-    public frame() {
+    public async frame() {
         // Note: It likely makes more sense to have a separate update class later
 
         this.calculateDeltaTime();
@@ -415,7 +422,7 @@ export class Renderer {
         this.renderParticles();
     }
 
-    public updateData(gui : ParticleGUI): void {
+    public async updateData(gui : ParticleGUI): Promise<void> {
         // update simulation properties
         this.particleSystem?.updateData(gui);
 
@@ -436,6 +443,11 @@ export class Renderer {
         this.vertexUniformBuffer?.setWidth(guiData.particleWidth);
 
         this.useVertexPulling = guiData.vertexPulling;
+
+        if(this.textureName != guiData.texture) {
+            this.textureName = guiData.texture;
+            await this.createUniformBindGroups(this.textureName)
+        }
 
     }
 

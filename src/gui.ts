@@ -17,7 +17,9 @@ export class ParticleGUI {
         particleBrightness: 0.2,
 
         useSpawnCap: true,
-        useBufferAliasing: true
+        useBufferAliasing: true,
+
+        texture: "circle_05.png"
     }
 
     constructor() {
@@ -38,6 +40,8 @@ export class ParticleGUI {
 
         this.gui.addColor(this._guiData, 'particleColor');
         this.gui.addColor(this._guiData, 'particleColor2');
+
+        this.gui.add(this._guiData, 'texture', ['circle_05.png', 'circle_01.png', '1x1-white.png'])
     }
 
 
