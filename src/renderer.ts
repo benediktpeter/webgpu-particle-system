@@ -129,10 +129,64 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
-        await this.initParticleRenderingPipeline()
+        await this.setupParticleRenderingPipelines()
     }
 
-    public async initParticleRenderingPipeline() {
+    public async setupParticleRenderingPipelines() {
+
+        this.createRenderPipelines(true);
+
+        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
+        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0, 0.2);
+        this.camera = new OrbitCamera([0,0,1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
+        this.cameraUniformBuffer = this.device.createBuffer({
+            size: 16*4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        this.writeCameraBuffer();
+
+
+        // @ts-ignore
+        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
+        if(this.timestamps) {
+            this.particleSystem.timestamps = this.timestamps;
+        }
+
+
+        await this.createUniformBindGroups("circle_05.png");
+
+        this.createParticleBufferBindGroup()
+    }
+
+    private createRenderPipelines(useAdditiveBlending: boolean = true) {
+
+        let additiveBlending = {
+            color: {
+                srcFactor: 'src-alpha',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+            alpha: {
+                srcFactor: 'zero',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+        };
+
+        let noBlending = {
+            color: {
+                srcFactor: 'one',
+                dstFactor: 'zero',
+                operation: 'add',
+            },
+            alpha: {
+                srcFactor: 'one',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+        };
+
+
         this.particleRenderPipelineInstancing = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
@@ -155,7 +209,7 @@ export class Renderer {
                             {
                                 // lifetime
                                 shaderLocation: 1,
-                                offset: 3*4,
+                                offset: 3 * 4,
                                 format: 'float32'
                             }
                         ],
@@ -169,18 +223,7 @@ export class Renderer {
                 entryPoint: "main",
                 targets: [{
                     format: this.format,
-                    blend: {
-                        color: {
-                            srcFactor: 'src-alpha',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                        alpha: {
-                            srcFactor: 'zero',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                    }
+                    blend: useAdditiveBlending ? additiveBlending : noBlending
                 }]
             },
             primitive: {
@@ -204,18 +247,7 @@ export class Renderer {
                 entryPoint: "main",
                 targets: [{
                     format: this.format,
-                    blend: {
-                        color: {
-                            srcFactor: 'src-alpha',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                        alpha: {
-                            srcFactor: 'zero',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                    }
+                    blend: useAdditiveBlending ? additiveBlending : noBlending
                 }]
             },
             primitive: {
@@ -223,31 +255,9 @@ export class Renderer {
             }
         });
 
-        if(!this.particleRenderPipelineVertexPulling) {
+        if (!this.particleRenderPipelineVertexPulling) {
             throw new Error("Vertex Pulling Pipeline creation failed.")
         }
-
-
-        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
-        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0, 0.2);
-        this.camera = new OrbitCamera([0,0,1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
-        this.cameraUniformBuffer = this.device.createBuffer({
-            size: 16*4,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        });
-        this.writeCameraBuffer();
-
-
-        // @ts-ignore
-        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
-        if(this.timestamps) {
-            this.particleSystem.timestamps = this.timestamps;
-        }
-
-
-        await this.createUniformBindGroups("circle_05.png");
-
-        this.createParticleBufferBindGroup()
     }
 
     private async createUniformBindGroups(textureFilePath: string) {
