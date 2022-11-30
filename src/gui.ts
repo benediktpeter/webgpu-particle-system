@@ -21,7 +21,9 @@ export class ParticleGUI {
 
         texture: "circle_05.png",
 
-        mode: "default"
+        mode: "default",
+
+        useCustomColors: true
     }
 
     constructor() {
@@ -40,7 +42,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, 'maxParticleLifetime');
         this.gui.add(this._guiData, 'particleBrightness');
 
-
+        this.gui.add(this._guiData, 'useCustomColors')
         this.gui.addColor(this._guiData, 'particleColor');
         this.gui.addColor(this._guiData, 'particleColor2');
 

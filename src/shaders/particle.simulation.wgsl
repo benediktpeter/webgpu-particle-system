@@ -88,7 +88,7 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
         } else if (params.mode == 1) {  // Snow mode
            particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
            particle.position = vec3<f32>(0);
-           particle.position.y = 5;
+           particle.position.y = 8;
            particle.position.x = 20 * (rand() - 0.5);
            particle.position.z = 20 * (rand() - 0.5);
 

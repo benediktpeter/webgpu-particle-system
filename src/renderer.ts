@@ -443,9 +443,14 @@ export class Renderer {
 
         const guiData = gui.guiData;
 
-        const particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
+        let particleColor = vec3.fromValues(1,1,1);
+        let particleColor2 = vec3.fromValues(1,1,1);
+        if (guiData.useCustomColors) {
+            particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
+            particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
+        }
+
         this.fragmentUniformBuffer?.setColor(vec3.fromValues(particleColor[0], particleColor[1],particleColor[2]));
-        const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
         this.fragmentUniformBuffer?.setAlphaFactor(guiData.particleBrightness);
 
