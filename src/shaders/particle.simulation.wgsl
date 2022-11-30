@@ -42,7 +42,8 @@ struct SimulationParams {
     seed: vec4<f32>,
     maxSpawnCount: u32,
     useSpawnCap: u32,    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
-    useAliasedSpawnCount: u32
+    useAliasedSpawnCount: u32,
+    mode: u32   // 0: default, 1: snow
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
@@ -74,13 +75,26 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     if (particle.lifetime <= 0 && !spawnLimitReached) {
         atomicAdd(&spawnCounter, 1);
 
-        particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
-        particle.position = params.origin;
+        if(params.mode == 0) {  // Default mode
+            particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
+            particle.position = vec3<f32>(0);
+            particle.position = params.origin;
 
-        var velocityAbs = params.initialVelocity;
-        velocityAbs = velocityAbs * (rand() * 0.3 + 0.7); // add randomness to velocity
-        particle.velocity = vec3<f32>(0,0,0);
-        particle.velocity = randUnitVec3() * velocityAbs;
+            var velocityAbs = params.initialVelocity;
+            velocityAbs = velocityAbs * (rand() * 0.3 + 0.7); // add randomness to velocity
+            particle.velocity = vec3<f32>(0,0,0);
+            particle.velocity = randUnitVec3() * velocityAbs;
+
+        } else if (params.mode == 1) {  // Snow mode
+           particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
+           particle.position = vec3<f32>(0);
+           particle.position.y = 5;
+           particle.position.x = 20 * (rand() - 0.5);
+           particle.position.z = 20 * (rand() - 0.5);
+
+           particle.velocity = vec3<f32>(0,0,0);
+           particle.velocity = randUnitVec3() * 0.015;
+        }
     }
 
     // apply gravity

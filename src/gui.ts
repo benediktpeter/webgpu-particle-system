@@ -19,11 +19,14 @@ export class ParticleGUI {
         useSpawnCap: true,
         useBufferAliasing: true,
 
-        texture: "circle_05.png"
+        texture: "circle_05.png",
+
+        mode: "default"
     }
 
     constructor() {
         this.gui.remember(this._guiData);
+        this.gui.add(this._guiData, 'mode', ['default', 'snow'])
 
         this.gui.add(this._guiData, "vertexPulling");
         this.gui.add(this._guiData, "useSpawnCap");

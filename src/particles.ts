@@ -19,6 +19,7 @@ export class Particles {
     private _maxNumParticlesSpawnPerSecond: number = 80;
     private _useSpawnCap: boolean = true;
     private _useBufferAliasing: boolean = true;
+    private _mode: string = "default";
 
     private readonly _device : GPUDevice;
 
@@ -150,6 +151,8 @@ export class Particles {
         this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
         this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
 
+        this._simulationUniformBuffer?.setMode(this._mode);
+
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
         this._timestamps?.writeTimestamp(commandEncoder,0);
@@ -169,6 +172,7 @@ export class Particles {
         this._maxParticleLifetime = gui.guiData.maxParticleLifetime;
         this._useSpawnCap = gui.guiData.useSpawnCap;
         this._useBufferAliasing = gui.guiData.useBufferAliasing;
+        this._mode = gui.guiData.mode;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;

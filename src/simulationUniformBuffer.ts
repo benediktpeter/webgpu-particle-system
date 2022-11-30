@@ -17,6 +17,7 @@ export class SimulationUniformBuffer {
     private readonly MAX_SPAWN_COUNT_OFFSET = this.RAND_SEED_OFFSET + 24;
     private readonly USE_SPAWN_CAP_OFFSET = this.MAX_SPAWN_COUNT_OFFSET + 4;
     private readonly USE_ALIASING_SPAWN_CAP_OFFSET = this.USE_SPAWN_CAP_OFFSET + 4;
+    private readonly MODE_OFFSET = this.USE_ALIASING_SPAWN_CAP_OFFSET + 4;
 
 
     constructor(device: GPUDevice) {
@@ -75,5 +76,24 @@ export class SimulationUniformBuffer {
 
     public setUseSpawnCapAliasing(useAliasing: boolean) : void {
         this._device.queue.writeBuffer(this._uniformBuffer, this.USE_ALIASING_SPAWN_CAP_OFFSET, Uint32Array.of(useAliasing ? 1 : 0));
+    }
+
+    public setMode(mode: string) : void {
+        let modeEnum: number;
+        switch (mode) {
+            case "default": {
+                modeEnum = 0;
+                break;
+            }
+            case "snow": {
+                modeEnum = 1;
+                break;
+            }
+            default: {
+                console.error("Invalid simulation mode. Default mode selected.")
+                modeEnum = 0;
+            }
+        }
+        this._device.queue.writeBuffer(this._uniformBuffer, this.MODE_OFFSET, Uint32Array.of(modeEnum));
     }
 }
