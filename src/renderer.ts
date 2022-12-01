@@ -48,6 +48,8 @@ export class Renderer {
     private gui?: ParticleGUI;
 
     private textureName: string = "";
+    private useAdditiveBlending: boolean = true;
+
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -459,11 +461,16 @@ export class Renderer {
 
         this.useVertexPulling = guiData.vertexPulling;
 
+        if(this.useAdditiveBlending != guiData.useAdditiveBlending) {
+            this.useAdditiveBlending = guiData.useAdditiveBlending;
+            this.createRenderPipelines(this.useAdditiveBlending)
+            await this.createUniformBindGroups(this.textureName)
+        }
+
         if(this.textureName != guiData.texture) {
             this.textureName = guiData.texture;
             await this.createUniformBindGroups(this.textureName)
         }
-
     }
 
     //this should probably be moved into the camera class

@@ -23,7 +23,8 @@ export class ParticleGUI {
 
         mode: "default",
 
-        useCustomColors: true
+        useCustomColors: true,
+        useAdditiveBlending: true
     }
 
     constructor() {
@@ -47,6 +48,7 @@ export class ParticleGUI {
         this.gui.addColor(this._guiData, 'particleColor2');
 
         this.gui.add(this._guiData, 'texture', ['circle_05.png', 'circle_01.png', '1x1-white.png'])
+        this.gui.add(this._guiData, 'useAdditiveBlending')
     }
 
 
