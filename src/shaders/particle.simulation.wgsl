@@ -25,7 +25,9 @@ fn randUnitVec3() -> vec3<f32> {
 struct Particle {
     position: vec3<f32>,
     lifetime: f32,
-    velocity: vec3<f32>
+    velocity: vec3<f32>,
+
+    rotation: vec3<f32>
 }
 
 struct Particles {

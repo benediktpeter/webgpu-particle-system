@@ -10,7 +10,8 @@ struct Camera {
 struct Particle {
     position: vec3<f32>,
     lifetime: f32,
-    velocity: vec3<f32>
+    velocity: vec3<f32>,
+    rotation: vec3<f32>
 }
 
 struct Particles {
@@ -85,7 +86,7 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
             output.lifetime = particleLifetime;
 
             if (output.lifetime <= 0) {
-                output.position = vec4<f32>(10.0, 10.0, 10.0, 1.0); // discard expired particles
+                output.position = vec4<f32>(100.0, 100.0, 10.0, 1.0); // discard expired particles
             }
 
             return output;
