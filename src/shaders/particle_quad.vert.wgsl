@@ -63,13 +63,13 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
             );
 
             var uvs = array<vec2<f32>, 6>(
-                vec2<f32>(0, 1),  //tl
-                vec2<f32>(0, 0),  //bl
-                vec2<f32>(1, 0),  //br
+                vec2<f32>(0, 0),  //tl
+                vec2<f32>(0, 1),  //bl
+                vec2<f32>(1, 1),  //br
 
-                vec2<f32>(1, 0),   //br
-                vec2<f32>(1, 1),   //tr
-                vec2<f32>(0, 1)    //tl
+                vec2<f32>(1, 1),   //br
+                vec2<f32>(1, 0),   //tr
+                vec2<f32>(0, 0)    //tl
             );
 
             // the camera's up and right vector are required to make the quads always face the camera

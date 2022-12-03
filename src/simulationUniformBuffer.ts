@@ -89,6 +89,10 @@ export class SimulationUniformBuffer {
                 modeEnum = 1;
                 break;
             }
+            case "tree": {
+                modeEnum = 2;
+                break;
+            }
             default: {
                 console.error("Invalid simulation mode. Default mode selected.")
                 modeEnum = 0;

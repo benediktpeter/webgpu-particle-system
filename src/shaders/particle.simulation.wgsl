@@ -96,11 +96,15 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
            particle.velocity = vec3<f32>(0,0,0);
            particle.velocity = randUnitVec3() * 0.015;
+        } else if (params.mode == 2) {  // tree mode
+            //todo: spawn in sphere around origin
         }
     }
 
     // apply gravity
     particle.velocity = particle.velocity + (params.gravity * params.deltaTime);
+
+    //todo: apply wind
 
     // update particle data
     particle.position = particle.position + (particle.velocity * params.deltaTime);
