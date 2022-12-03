@@ -76,10 +76,10 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
     if (particle.lifetime <= 0 && !spawnLimitReached) {
         atomicAdd(&spawnCounter, 1);
+        particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
 
         if(params.mode == 0) {  // Default mode
-            particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
-            particle.position = vec3<f32>(0);
+           // particle.position = vec3<f32>(0);
             particle.position = params.origin;
 
             var velocityAbs = params.initialVelocity;
@@ -88,16 +88,18 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
             particle.velocity = randUnitVec3() * velocityAbs;
 
         } else if (params.mode == 1) {  // Snow mode
-           particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
            particle.position = vec3<f32>(0);
-           particle.position.y = 8;
+           particle.position.y = params.origin.y;
            particle.position.x = 20 * (rand() - 0.5);
            particle.position.z = 20 * (rand() - 0.5);
 
            particle.velocity = vec3<f32>(0,0,0);
            particle.velocity = randUnitVec3() * 0.015;
+
         } else if (params.mode == 2) {  // tree mode
-            //todo: spawn in sphere around origin
+            particle.position = params.origin + randUnitVec3() * rand();
+            particle.velocity = vec3<f32>(0,0,0);
+            particle.velocity = randUnitVec3() * 0.015;
         }
     }
 

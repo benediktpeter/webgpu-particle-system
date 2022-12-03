@@ -173,6 +173,7 @@ export class Particles {
         this._useSpawnCap = gui.guiData.useSpawnCap;
         this._useBufferAliasing = gui.guiData.useBufferAliasing;
         this._mode = gui.guiData.mode;
+        this._originPos = vec3.fromValues(0, gui.guiData.spawnY, 0);
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;

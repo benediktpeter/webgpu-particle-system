@@ -12,6 +12,7 @@ export class ParticleGUI {
         particleColor: [230,220,155,255],
 
         numberOfParticles: 1000000,
+        spawnY: 0,  //todo: add radius for tree mode
         minParticleLifetime: 1,
         maxParticleLifetime: 5,
         particleHeight: 15,
@@ -43,8 +44,8 @@ export class ParticleGUI {
 
         this.gui.remember(this._guiData);
 
-        this.gui.add(this._guiData, 'Default Preset');
-        //this.gui.add(this._guiData, 'Leaves Preset'); //todo: add when implemented
+        //this.gui.add(this._guiData, 'Default Preset');//todo: add when implemented
+        this.gui.add(this._guiData, 'Leaves Preset');
 
         this.gui.add(this._guiData, 'mode', ['default', 'snow', 'tree'])
 
@@ -56,6 +57,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "particleWidth");
 
         this.gui.add(this._guiData, 'numberOfParticles');
+        this.gui.add(this._guiData, "spawnY").min(-5).max(5).step(0.01);
         this.gui.add(this._guiData, 'minParticleLifetime');
         this.gui.add(this._guiData, 'maxParticleLifetime');
         this.gui.add(this._guiData, 'particleBrightness');
@@ -102,15 +104,15 @@ export class ParticleGUI {
                         controller.updateDisplay();
                         break;
                     case "particleHeight":
-                        controller.setValue(25);
+                        controller.setValue(35);
                         controller.updateDisplay();
                         break;
                     case "particleWidth":
-                        controller.setValue(25);
+                        controller.setValue(35);
                         controller.updateDisplay();
                         break;
                     case "numberOfParticles":
-                        controller.setValue(10000);
+                        controller.setValue(100000);
                         controller.updateDisplay();
                         break;
                     case "useCustomColors":
@@ -126,11 +128,15 @@ export class ParticleGUI {
         );
     }
 
+    public setPresetSnow() : void {
+        //todo: implement
+    }
+
     public setPresetDefault() : void {
         Object.getOwnPropertyNames(this._guiData).forEach(property => {
             console.log(property)
             // @ts-ignore
-            this.setGUIValue(property, this._guiData[property]) //todo: this takes the current values. add a copy of the intitial values
+            this.setGUIValue(property, this._guiData[property]) //todo: this takes the current values. add a copy of the initial values
         })
     }
 }
