@@ -45,7 +45,8 @@ struct SimulationParams {
     maxSpawnCount: u32,
     useSpawnCap: u32,    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
     useAliasedSpawnCount: u32,
-    mode: u32   // 0: default, 1: snow
+    mode: u32,   // 0: default, 1: snow,
+    wind: vec4<f32>  // w...intensity
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
@@ -106,7 +107,8 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     // apply gravity
     particle.velocity = particle.velocity + (params.gravity * params.deltaTime);
 
-    //todo: apply wind
+    // apply wind
+    particle.position += params.wind.xyz * params.wind.w * params.deltaTime;
 
     // update particle data
     particle.position = particle.position + (particle.velocity * params.deltaTime);

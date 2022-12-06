@@ -27,7 +27,13 @@ export class ParticleGUI {
         mode: "default",
 
         useCustomColors: true,
-        useAdditiveBlending: true
+        useAdditiveBlending: true,
+
+        enableWind: false,
+        windX: -1,
+        windZ: -1,
+        windY: 0,
+        windStrength: 0.7
     }
 
     constructor() {
@@ -60,8 +66,14 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "spawnY").min(-5).max(5).step(0.01);
         this.gui.add(this._guiData, 'minParticleLifetime');
         this.gui.add(this._guiData, 'maxParticleLifetime');
-        this.gui.add(this._guiData, 'particleBrightness');
 
+        this.gui.add(this._guiData, 'enableWind')
+        this.gui.add(this._guiData, "windX").min(-2).max(2).step(0.01);
+        this.gui.add(this._guiData, "windY").min(-2).max(2).step(0.01);
+        this.gui.add(this._guiData, "windZ").min(-2).max(2).step(0.01);
+        this.gui.add(this._guiData, "windStrength").min(0).max(3).step(0.01);
+
+        this.gui.add(this._guiData, 'particleBrightness');
         this.gui.add(this._guiData, 'useCustomColors')
         this.gui.addColor(this._guiData, 'particleColor');
         this.gui.addColor(this._guiData, 'particleColor2');
@@ -126,6 +138,12 @@ export class ParticleGUI {
                 }
             }
         );
+
+        this.setGUIValue("enableWind", true);
+        this.setGUIValue("windX", -1)
+        this.setGUIValue("windY", -0.5)
+        this.setGUIValue("windZ", 0)
+        this.setGUIValue("windStrength", 0.7)
     }
 
     public setPresetSnow() : void {

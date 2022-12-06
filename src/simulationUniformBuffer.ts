@@ -5,7 +5,7 @@ export class SimulationUniformBuffer {
     private readonly _uniformBuffer : GPUBuffer;
     private _device: GPUDevice;
 
-    private readonly _bufferSize = 84;
+    private readonly _bufferSize = 112;
 
     private readonly DELTATIME_OFFSET = 0;
     private readonly GRAVITY_OFFSET = 16;
@@ -18,6 +18,7 @@ export class SimulationUniformBuffer {
     private readonly USE_SPAWN_CAP_OFFSET = this.MAX_SPAWN_COUNT_OFFSET + 4;
     private readonly USE_ALIASING_SPAWN_CAP_OFFSET = this.USE_SPAWN_CAP_OFFSET + 4;
     private readonly MODE_OFFSET = this.USE_ALIASING_SPAWN_CAP_OFFSET + 4;
+    private readonly WIND_OFFSET = this.MODE_OFFSET + 4;
 
 
     constructor(device: GPUDevice) {
@@ -64,6 +65,10 @@ export class SimulationUniformBuffer {
 
     public setRandSeed(seed: vec4) : void {
         this._device.queue.writeBuffer(this._uniformBuffer, this.RAND_SEED_OFFSET, Float32Array.from(seed) as ArrayBuffer);
+    }
+
+    public setWind(wind: vec4) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.WIND_OFFSET, Float32Array.from(wind) as ArrayBuffer);
     }
 
     public setMaxSpawnCount(maxSpawnCount: number) : void {
