@@ -20,9 +20,10 @@ export class Particles {
     private _useSpawnCap: boolean = true;
     private _useBufferAliasing: boolean = true;
     private _mode: string = "default";
+    private _speedFactor: number = 1;
 
     private _wind: vec4 = vec4.create();
-    private _windEnabled : boolean = false;
+
 
     private readonly _device : GPUDevice;
 
@@ -141,7 +142,7 @@ export class Particles {
         }
 
         // update uniform data
-        this._simulationUniformBuffer?.setDeltaTime(deltaTime);
+        this._simulationUniformBuffer?.setDeltaTime(deltaTime * this._speedFactor);
         this._simulationUniformBuffer?.setMinLifetime(this._minParticleLifetime);
         this._simulationUniformBuffer?.setMaxLifetime(this._maxParticleLifetime);
         this._simulationUniformBuffer?.setGravity(this._gravity);
@@ -150,7 +151,7 @@ export class Particles {
         this._simulationUniformBuffer?.setWind(this._wind);
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
-        this._spawnCap += this._numParticles * 0.001 * deltaTime;
+        this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;
         this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
         this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
         this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
@@ -178,6 +179,7 @@ export class Particles {
         this._useBufferAliasing = gui.guiData.useBufferAliasing;
         this._mode = gui.guiData.mode;
         this._originPos = vec3.fromValues(0, gui.guiData.spawnY, 0);
+        this._speedFactor = gui.guiData.speedFactor;
 
         this._wind = vec4.fromValues(gui.guiData.windX, gui.guiData.windY, gui.guiData.windZ, gui.guiData.enableWind ? gui.guiData.windStrength : 0);
 

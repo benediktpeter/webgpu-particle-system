@@ -33,7 +33,9 @@ export class ParticleGUI {
         windX: -1,
         windZ: -1,
         windY: 0,
-        windStrength: 0.7
+        windStrength: 0.7,
+
+        speedFactor: 1
     }
 
     constructor() {
@@ -54,6 +56,8 @@ export class ParticleGUI {
         this.gui.add(this._guiData, 'Leaves Preset');
 
         this.gui.add(this._guiData, 'mode', ['default', 'snow', 'tree'])
+
+        this.gui.add(this._guiData, 'speedFactor').min(0).max(3).step(0.01);
 
         this.gui.add(this._guiData, "vertexPulling");
         this.gui.add(this._guiData, "useSpawnCap");
