@@ -213,6 +213,12 @@ export class Renderer {
                                 shaderLocation: 1,
                                 offset: 3 * 4,
                                 format: 'float32'
+                            },
+                            {
+                                // rotated right vector
+                                shaderLocation: 2,
+                                offset: 8*4,
+                                format: 'float32x3'
                             }
                         ],
                     }

@@ -11,7 +11,7 @@ struct Particle {
     position: vec3<f32>,
     lifetime: f32,
     velocity: vec3<f32>,
-    rotation: vec3<f32>
+    rightRotation: vec3<f32>
 }
 
 struct Particles {
@@ -24,7 +24,8 @@ struct Particles {
 
 struct VertexInput {
     @location(0) position : vec3<f32>,
-    @location(1) lifetime :f32
+    @location(1) lifetime :f32,
+    @location(2) rightRotated: vec3<f32>
 };
 
 struct VertexOutput {
@@ -35,7 +36,7 @@ struct VertexOutput {
 
 @vertex
 fn main_instancing(vertexInput: VertexInput, @builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
-    return mainVert(vertexInput.position, vertexInput.lifetime, VertexIndex);
+    return mainVert(vertexInput.position, vertexInput.lifetime, VertexIndex, vertexInput.rightRotated);
 }
 
 
@@ -45,10 +46,10 @@ fn main_vertex_pulling(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput 
     let quadIdx = vertexIndex % 6;
     let particle = particleBuffer.particles[particleIdx];
 
-    return mainVert(particle.position, particle.lifetime, quadIdx);
+    return mainVert(particle.position, particle.lifetime, quadIdx, particle.rightRotation);
 }
 
-fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> VertexOutput {
+fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rightRotated: vec3<f32>) -> VertexOutput {
             var halfwidth = uniforms.halfwidth;
             var halfheight = uniforms.halfheight;
 
@@ -74,10 +75,17 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32) -> 
 
             // the camera's up and right vector are required to make the quads always face the camera
             let cameraRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
-            let cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
+
+            var cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
+            if(abs(dot(rightRotated, cameraRight)) <= 1.0) {
+                cameraUp = normalize(cross(rightRotated, cameraRight));
+                cameraUp.y = -cameraUp.y;
+            }
+
 
             var posPlusQuad = particlePos;
-            posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);
+            //posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);
+            posPlusQuad = posPlusQuad + (rightRotated * quadPos[quadVertIdx].x);    //todo: make optional, e.g. disable when rightRotated is (0,0,0)
             posPlusQuad = posPlusQuad + (cameraUp * quadPos[quadVertIdx].y);
 
             var output: VertexOutput;

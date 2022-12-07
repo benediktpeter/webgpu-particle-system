@@ -27,7 +27,7 @@ struct Particle {
     lifetime: f32,
     velocity: vec3<f32>,
 
-    rotation: vec3<f32>
+    rightRotation: vec3<f32> //todo: rename (also in vertex shader)
 }
 
 struct Particles {
@@ -109,6 +109,9 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
 
     // apply wind
     particle.position += params.wind.xyz * params.wind.w * params.deltaTime;
+
+    // todo: implement actual rotation
+    particle.rightRotation = normalize(vec3<f32>(-1,0.5,-1));
 
     // update particle data
     particle.position = particle.position + (particle.velocity * params.deltaTime);
