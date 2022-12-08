@@ -75,7 +75,8 @@ struct SimulationParams {
     useSpawnCap: u32,    // using u32 since boolean types are not mentioned in https://www.w3.org/TR/WGSL/#alignment-and-size
     useAliasedSpawnCount: u32,
     mode: u32,   // 0: default, 1: snow,
-    wind: vec4<f32>  // w...intensity
+    wind: vec4<f32>,  // w...intensity
+    treeRadius: f32
 }
 
 @binding(0) @group(0) var<storage, read_write> data : Particles;
@@ -127,7 +128,7 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
            particle.velocity = randUnitVec3() * 0.015;
 
         } else if (params.mode == 2) {  // tree mode
-            particle.position = params.origin + randUnitVec3() * rand();
+            particle.position = params.origin + randUnitVec3() * (rand() * params.treeRadius);
             particle.velocity = vec3<f32>(0,0,0);
             particle.velocity = randUnitVec3() * 0.015;
         }

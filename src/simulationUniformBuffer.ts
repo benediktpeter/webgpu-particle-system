@@ -19,6 +19,7 @@ export class SimulationUniformBuffer {
     private readonly USE_ALIASING_SPAWN_CAP_OFFSET = this.USE_SPAWN_CAP_OFFSET + 4;
     private readonly MODE_OFFSET = this.USE_ALIASING_SPAWN_CAP_OFFSET + 4;
     private readonly WIND_OFFSET = this.MODE_OFFSET + 4;
+    private readonly TREE_RADIUS_OFFSET = this.WIND_OFFSET + 4*4;
 
 
     constructor(device: GPUDevice) {
@@ -81,6 +82,10 @@ export class SimulationUniformBuffer {
 
     public setUseSpawnCapAliasing(useAliasing: boolean) : void {
         this._device.queue.writeBuffer(this._uniformBuffer, this.USE_ALIASING_SPAWN_CAP_OFFSET, Uint32Array.of(useAliasing ? 1 : 0));
+    }
+
+    public setTreeRadius(treeRadius: number) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.TREE_RADIUS_OFFSET, Float32Array.of(treeRadius));
     }
 
     public setMode(mode: string) : void {

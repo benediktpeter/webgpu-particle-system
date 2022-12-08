@@ -21,6 +21,7 @@ export class Particles {
     private _useBufferAliasing: boolean = true;
     private _mode: string = "default";
     private _speedFactor: number = 1;
+    private _treeRadius: number = 1;
 
     private _wind: vec4 = vec4.create();
 
@@ -149,6 +150,7 @@ export class Particles {
         this._simulationUniformBuffer?.setOrigin(this._originPos);
         this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
         this._simulationUniformBuffer?.setWind(this._wind);
+        this._simulationUniformBuffer?.setTreeRadius(this._treeRadius);
         this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
         this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;
@@ -182,6 +184,7 @@ export class Particles {
         this._speedFactor = gui.guiData.speedFactor;
 
         this._wind = vec4.fromValues(gui.guiData.windX, gui.guiData.windY, gui.guiData.windZ, gui.guiData.enableWind ? gui.guiData.windStrength : 0);
+        this._treeRadius = gui.guiData.treeRadius;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;

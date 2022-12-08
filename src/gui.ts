@@ -13,7 +13,7 @@ export class ParticleGUI {
 
         numberOfParticles: 1000000,
         spawnY: 0,
-        treeRadius: 0, //todo: implement
+        treeRadius: 1,
 
         minParticleLifetime: 1,
         maxParticleLifetime: 5,
@@ -71,6 +71,7 @@ export class ParticleGUI {
 
         this.gui.add(this._guiData, 'numberOfParticles');
         this.gui.add(this._guiData, "spawnY").min(-5).max(5).step(0.01);
+        this.gui.add(this._guiData, "treeRadius").min(0).max(5).step(0.01)
         this.gui.add(this._guiData, 'minParticleLifetime');
         this.gui.add(this._guiData, 'maxParticleLifetime');
 
