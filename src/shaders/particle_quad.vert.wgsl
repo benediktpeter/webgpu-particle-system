@@ -79,7 +79,6 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rig
             var cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
             if(abs(dot(rightRotated, cameraRight)) <= 1.0) {
                 cameraUp = normalize(cross(rightRotated, cameraRight));
-                cameraUp.y = -cameraUp.y;
             }
 
 
