@@ -185,6 +185,7 @@ export class Particles {
 
         this._wind = vec4.fromValues(gui.guiData.windX, gui.guiData.windY, gui.guiData.windZ, gui.guiData.enableWind ? gui.guiData.windStrength : 0);
         this._treeRadius = gui.guiData.treeRadius;
+        this._gravity = vec3.fromValues(0,gui.guiData.gravityY,0);
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;

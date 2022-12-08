@@ -38,6 +38,8 @@ export class ParticleGUI {
         windStrength: 0.7,
         enableRotation: false,
 
+        gravityY: -1,
+
         speedFactor: 1
     }
 
@@ -81,6 +83,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "windZ").min(-2).max(2).step(0.01);
         this.gui.add(this._guiData, "windStrength").min(0).max(3).step(0.01);
         this.gui.add(this._guiData, "enableRotation");
+        this.gui.add(this._guiData, 'gravityY').min(-3).max(3).step(0.01);
 
         this.gui.add(this._guiData, 'particleBrightness');
         this.gui.add(this._guiData, 'useCustomColors')
