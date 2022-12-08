@@ -1,6 +1,7 @@
 struct Uniforms {
   halfwidth: f32,
-  halfheight : f32
+  halfheight: f32,
+  rotationEnabled: u32
 };
 
 struct Camera {
@@ -74,17 +75,20 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rig
             );
 
             // the camera's up and right vector are required to make the quads always face the camera
-            let cameraRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
-
+            var cameraRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
             var cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
-            if(abs(dot(rightRotated, cameraRight)) <= 1.0) {
+
+            if(uniforms.rotationEnabled == 1 && abs(dot(rightRotated, cameraRight)) <= 1.0) {    //todo: and if rotation enabled
                 cameraUp = normalize(cross(rightRotated, cameraRight));
+                cameraRight = rightRotated;
+            } else {
+                //rightRotated = cameraRight;
             }
 
 
             var posPlusQuad = particlePos;
-            //posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);
-            posPlusQuad = posPlusQuad + (rightRotated * quadPos[quadVertIdx].x);    //todo: make optional, e.g. disable when rightRotated is (0,0,0)
+            posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);
+            //posPlusQuad = posPlusQuad + (rightRotated * quadPos[quadVertIdx].x);    //todo: make optional, e.g. disable when rightRotated is (0,0,0)
             posPlusQuad = posPlusQuad + (cameraUp * quadPos[quadVertIdx].y);
 
             var output: VertexOutput;

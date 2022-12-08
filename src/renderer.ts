@@ -464,6 +464,7 @@ export class Renderer {
 
         this.vertexUniformBuffer?.setHeight(guiData.particleHeight);
         this.vertexUniformBuffer?.setWidth(guiData.particleWidth);
+        this.vertexUniformBuffer?.setEnableRotation(guiData.enableRotation)
 
         this.useVertexPulling = guiData.vertexPulling;
 

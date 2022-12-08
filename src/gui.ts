@@ -12,7 +12,9 @@ export class ParticleGUI {
         particleColor: [230,220,155,255],
 
         numberOfParticles: 1000000,
-        spawnY: 0,  //todo: add radius for tree mode
+        spawnY: 0,
+        treeRadius: 0, //todo: implement
+
         minParticleLifetime: 1,
         maxParticleLifetime: 5,
         particleHeight: 15,
@@ -34,6 +36,7 @@ export class ParticleGUI {
         windZ: -1,
         windY: 0,
         windStrength: 0.7,
+        enableRotation: false,
 
         speedFactor: 1
     }
@@ -76,6 +79,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "windY").min(-2).max(2).step(0.01);
         this.gui.add(this._guiData, "windZ").min(-2).max(2).step(0.01);
         this.gui.add(this._guiData, "windStrength").min(0).max(3).step(0.01);
+        this.gui.add(this._guiData, "enableRotation");
 
         this.gui.add(this._guiData, 'particleBrightness');
         this.gui.add(this._guiData, 'useCustomColors')
@@ -148,6 +152,7 @@ export class ParticleGUI {
         this.setGUIValue("windY", -0.5)
         this.setGUIValue("windZ", 0)
         this.setGUIValue("windStrength", 0.7)
+        this.setGUIValue('enableRotation', true)
     }
 
     public setPresetSnow() : void {

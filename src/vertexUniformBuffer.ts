@@ -2,9 +2,10 @@ export class VertexUniformBuffer {
 
     private readonly _uniformBuffer : GPUBuffer;
 
-    private _bufferSize = 4 + 4; //float, float
+    private _bufferSize = 4 + 4 + 4; //float, float, u32
     private readonly HALFWIDTH_OFFSET : number = 0;
     private readonly HALFHEIGHT_OFFSET : number = this.HALFWIDTH_OFFSET + 4;
+    private readonly ROTATION_ENABLED_OFFSET : number = this.HALFHEIGHT_OFFSET + 4;
 
     private _canvasHeight : number;
     private _canvasWidth : number;
@@ -25,6 +26,7 @@ export class VertexUniformBuffer {
 
         this.setHeight(height);
         this.setWidth(width);
+        this.setEnableRotation(false)
     }
 
     get uniformBuffer(): GPUBuffer {
@@ -43,6 +45,10 @@ export class VertexUniformBuffer {
     public setWidth(width: number) : void {
         let halfWidth = (width * 0.5) / this._canvasWidth;
         this._device.queue.writeBuffer(this._uniformBuffer, this.HALFWIDTH_OFFSET, Float32Array.of(halfWidth));
+    }
+
+    public setEnableRotation(enableRotation : boolean) : void {
+        this._device.queue.writeBuffer(this._uniformBuffer, this.ROTATION_ENABLED_OFFSET, Uint32Array.of(enableRotation ? 1 : 0))
     }
 
     get canvasHeight(): number {
