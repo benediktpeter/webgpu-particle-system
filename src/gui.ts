@@ -1,6 +1,8 @@
 import * as dat from 'dat.gui';
 import {Particles} from "./particles";
 
+import presetsJSON from "./presets/presets.json"
+
 export class ParticleGUI {
     gui = new dat.GUI();
     private _guiData = {
@@ -46,19 +48,11 @@ export class ParticleGUI {
     constructor() {
         // @ts-ignore
         this._guiData['Leaves Preset'] = function () {
-            this.refParticleGUI.setPresetLeaves()
-        };
-
-        // @ts-ignore
-        this._guiData['Default Preset'] = function () {
-            this.refParticleGUI.setPresetDefault()
+            //this.refParticleGUI.setPresetLeaves()
         };
 
 
         this.gui.remember(this._guiData);
-
-        //this.gui.add(this._guiData, 'Default Preset');//todo: add when implemented
-        this.gui.add(this._guiData, 'Leaves Preset');
 
         this.gui.add(this._guiData, 'mode', ['default', 'snow', 'tree'])
 
@@ -93,6 +87,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, 'texture', ['circle_05.png', 'circle_01.png', '1x1-white.png', 'leaf1.png'])
         this.gui.add(this._guiData, 'useAdditiveBlending')
 
+        this.addPresets()
     }
 
 
@@ -102,6 +97,23 @@ export class ParticleGUI {
             this._guiData.numberOfParticles = Particles.MAX_NUM_PARTICLES;
         }
         return this._guiData;
+    }
+
+    private addPresets() {
+        Object.getOwnPropertyNames(presetsJSON.remembered).forEach(presetName => {
+            // @ts-ignore
+            const preset = presetsJSON.remembered[presetName];
+            this.addPreset(preset[0], presetName);
+        })
+        this.gui.preset = "Default";
+    }
+
+    private addPreset(data: any, name: string) : void {
+        Object.getOwnPropertyNames(data).forEach(property => {
+            // @ts-ignore
+            this.setGUIValue(property, data[property])
+        })
+        this.gui.saveAs(name);
     }
 
     public setGUIValue(propertyName: string, value: any) : void {
@@ -157,17 +169,9 @@ export class ParticleGUI {
         this.setGUIValue("windZ", 0)
         this.setGUIValue("windStrength", 0.7)
         this.setGUIValue('enableRotation', true)
+
+        this.gui.saveAs("Leaves")
+        this.gui.preset = "Default";
     }
 
-    public setPresetSnow() : void {
-        //todo: implement
-    }
-
-    public setPresetDefault() : void {
-        Object.getOwnPropertyNames(this._guiData).forEach(property => {
-            console.log(property)
-            // @ts-ignore
-            this.setGUIValue(property, this._guiData[property]) //todo: this takes the current values. add a copy of the initial values
-        })
-    }
 }
