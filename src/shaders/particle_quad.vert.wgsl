@@ -75,18 +75,18 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rig
             );
 
             // the camera's up and right vector are required to make the quads always face the camera
-            var cameraRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
-            var cameraUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
+            var quadRight = vec3<f32>(camera.viewProjectionMatrix[0].x, camera.viewProjectionMatrix[1].x, camera.viewProjectionMatrix[2].x);
+            var quadUp = vec3<f32>(camera.viewProjectionMatrix[0].y, camera.viewProjectionMatrix[1].y, camera.viewProjectionMatrix[2].y);
 
             // if rotation is enabled the new up vector is calculated using the cross product
-            if(uniforms.rotationEnabled == 1 && abs(dot(rightRotated, cameraRight)) <= 1.0) {
-                cameraUp = normalize(cross(rightRotated, cameraRight));
-                cameraRight = rightRotated;
+            if(uniforms.rotationEnabled == 1 && abs(dot(rightRotated, quadRight)) <= 1.0) {   //todo: add reference
+                quadUp = normalize(cross(rightRotated, quadRight));
+                quadRight = rightRotated;
             }
 
             var posPlusQuad = particlePos;
-            posPlusQuad = posPlusQuad + (cameraRight * quadPos[quadVertIdx].x);
-            posPlusQuad = posPlusQuad + (cameraUp * quadPos[quadVertIdx].y);
+            posPlusQuad = posPlusQuad + (quadRight * quadPos[quadVertIdx].x);
+            posPlusQuad = posPlusQuad + (quadUp * quadPos[quadVertIdx].y);
 
             var output: VertexOutput;
             output.position = camera.viewProjectionMatrix * vec4<f32>(posPlusQuad,1.0);

@@ -32,7 +32,7 @@ fn createQuaternion(axis: vec3<f32>, angleRad: f32) -> vec4<f32> {
     return quat;
 }
 
-fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32>{
+fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32> {  // todo: add ref
   var result: vec4<f32>;
   result.x = (quat1.w * quat2.x) + (quat1.x * quat2.w) + (quat1.y * quat2.z) - (quat1.z * quat2.y);
   result.y = (quat1.w * quat2.y) - (quat1.x * quat2.z) + (quat1.y * quat2.w) + (quat1.z * quat2.x);
@@ -41,7 +41,7 @@ fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32>{
   return result;
 }
 
-fn rotateVertexWithQuaternion(vertex: vec3<f32>, rotationQuat: vec4<f32>) -> vec3<f32> {
+fn rotateVertexWithQuaternion(vertex: vec3<f32>, rotationQuat: vec4<f32>) -> vec3<f32> { // todo: add ref
    let vertexQuat = vec4<f32>(vertex, 0);
    let rotationQuatInverse = vec4<f32>(-rotationQuat.xyz, rotationQuat.w);
 
