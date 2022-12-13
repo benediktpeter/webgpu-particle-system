@@ -7,7 +7,7 @@
         "speedFactor": 1,
         "vertexPulling": false,
         "useSpawnCap": true,
-        "useBufferAliasing": true,
+        "useBufferAliasing": false,
         "particleHeight": 15,
         "particleWidth": 15,
         "numberOfParticles": 1000000,
@@ -40,43 +40,121 @@
         "useAdditiveBlending": true
       }
     },
-    "Leaves": {
+    "Snow": {
       "0": {
-        "mode": "tree",
-        "speedFactor": 1,
+        "mode": "snow",
+        "speedFactor": 0.87,
         "vertexPulling": false,
         "useSpawnCap": true,
         "useBufferAliasing": true,
-        "particleHeight": 35,
-        "particleWidth": 35,
-        "numberOfParticles": 50000,
-        "spawnY": 0.2,
-        "treeRadius": 1,
-        "minParticleLifetime": 3,
+        "particleHeight": 70,
+        "particleWidth": 70,
+        "numberOfParticles": 100000,
+        "spawnY": 2.2600000000000002,
+        "treeRadius": 2.88,
+        "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
         "enableWind": true,
         "windX": -1,
-        "windY": -0.5,
-        "windZ": 0,
+        "windY": 0,
+        "windZ": -1,
         "windStrength": 0.7000000000000001,
-        "enableRotation": true,
-        "gravityY": -0.8,
-        "particleBrightness": 0.2,
-        "useCustomColors": false,
+        "enableRotation": false,
+        "gravityY": -0.48,
+        "particleBrightness": 0.5,
+        "useCustomColors": true,
         "particleColor": [
-          230,
-          220,
-          155,
+          255,
+          255,
+          255,
           255
         ],
         "particleColor2": [
-          252,
-          118,
-          39,
+          255,
+          255,
+          255,
+          255
+        ],
+        "texture": "circle_05.png",
+        "useAdditiveBlending": true
+      }
+    },
+    "Leaves": {
+      "0": {
+        "mode": "tree",
+        "speedFactor": 0.87,
+        "vertexPulling": false,
+        "useSpawnCap": true,
+        "useBufferAliasing": true,
+        "particleHeight": 100,
+        "particleWidth": 100,
+        "numberOfParticles": 1000,
+        "spawnY": 0.11,
+        "treeRadius": 2.88,
+        "minParticleLifetime": 1,
+        "maxParticleLifetime": 5,
+        "enableWind": true,
+        "windX": -1,
+        "windY": 0,
+        "windZ": -1,
+        "windStrength": 0.9500000000000001,
+        "enableRotation": true,
+        "gravityY": -0.32,
+        "particleBrightness": 0.3,
+        "useCustomColors": true,
+        "particleColor": [
+          70,
+          45.390089928990754,
+          36.83012120863971,
+          255
+        ],
+        "particleColor2": [
+          212.5,
+          173.8096587511958,
+          163.8890584309896,
           255
         ],
         "texture": "leaf1.png",
         "useAdditiveBlending": false
+      }
+    },
+    "Circles": {
+      "0": {
+        "mode": "default",
+        "speedFactor": 1,
+        "vertexPulling": false,
+        "useSpawnCap": true,
+        "useBufferAliasing": true,
+        "particleHeight": 50,
+        "particleWidth": 50,
+        "numberOfParticles": 30000,
+        "spawnY": 0,
+        "treeRadius": 1,
+        "minParticleLifetime": 1,
+        "maxParticleLifetime": 5,
+        "enableWind": false,
+        "windX": -1,
+        "windY": 0,
+        "windZ": -1,
+        "windStrength": 0.7000000000000001,
+        "enableRotation": false,
+        "gravityY": 0,
+        "particleBrightness": 0.5,
+        "useCustomColors": true,
+        "particleColor": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "particleColor2": [
+          0,
+          255,
+          97,
+          255
+        ],
+        "texture": "circle_01.png",
+        "useAdditiveBlending": true
       }
     }
   },

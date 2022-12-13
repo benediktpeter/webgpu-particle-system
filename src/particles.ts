@@ -23,6 +23,10 @@ export class Particles {
     private _speedFactor: number = 1;
     private _treeRadius: number = 1;
 
+    private _spawned: number = 0;
+    private _toggle: number = 0;
+    private _initialized : boolean = false;
+
     private _wind: vec4 = vec4.create();
 
 
@@ -143,22 +147,40 @@ export class Particles {
         }
 
         // update uniform data
-        this._simulationUniformBuffer?.setDeltaTime(deltaTime * this._speedFactor);
-        this._simulationUniformBuffer?.setMinLifetime(this._minParticleLifetime);
-        this._simulationUniformBuffer?.setMaxLifetime(this._maxParticleLifetime);
-        this._simulationUniformBuffer?.setGravity(this._gravity);
-        this._simulationUniformBuffer?.setOrigin(this._originPos);
-        this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
-        this._simulationUniformBuffer?.setWind(this._wind);
-        this._simulationUniformBuffer?.setTreeRadius(this._treeRadius);
-        this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
+        let buffer = this._simulationUniformBuffer;
+        buffer?.setDeltaTime(deltaTime * this._speedFactor);
+        buffer?.setMinLifetime(this._minParticleLifetime);
+        buffer?.setMaxLifetime(this._maxParticleLifetime);
+        buffer?.setGravity(this._gravity);
+        buffer?.setOrigin(this._originPos);
+        buffer?.setInitialVelocity(this._initialVelocity);
+        buffer?.setWind(this._wind);
+        buffer?.setTreeRadius(this._treeRadius);
+        buffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
+        if(this._initialized === false){
+            this._toggle = 0;
+            this._initialized = true;
+        }
+
+        this._toggle += deltaTime;
+        let pointsPerSec = 100_000;
+        let shouldVeSpawned = Math.floor(pointsPerSec * this._toggle);
+        let toSpawn = shouldVeSpawned - this._spawned;
+        
         this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;
-        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
-        this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
-        this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
+        buffer?.setMaxSpawnCount(toSpawn);
+        // buffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
+        buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
+        buffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
+        
+        this._spawned += toSpawn;
+        if(this._toggle > 1.0){
+            this._toggle = 0.0;
+            this._spawned = 0;
+        }
 
-        this._simulationUniformBuffer?.setMode(this._mode);
+        buffer?.setMode(this._mode);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
@@ -193,14 +215,14 @@ export class Particles {
             this._numParticles = gui.guiData.numberOfParticles;
             this.createGPUParticleBuffer()  //create a new buffer of the correct length
 
-            if (oldParticleBuffer && this._particleBuffer) {
-                // copy data from the old buffer to the new one
-                const commandEncoder = this._device.createCommandEncoder();
-                commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
-                this._device.queue.submit([commandEncoder.finish()]);
-            } else {
-                throw new Error("Particle Buffer now defined");
-            }
+            // if (oldParticleBuffer && this._particleBuffer) {
+            //     // copy data from the old buffer to the new one
+            //     const commandEncoder = this._device.createCommandEncoder();
+            //     commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
+            //     this._device.queue.submit([commandEncoder.finish()]);
+            // } else {
+            //     throw new Error("Particle Buffer now defined");
+            // }
 
             oldParticleBuffer?.destroy()    // destroy the old buffer
 
