@@ -106,31 +106,37 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     }
 
     if (particle.lifetime <= 0 && !spawnLimitReached) {
-        atomicAdd(&spawnCounter, 1);
-        particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
-        particle.rightRotation = randUnitVec3();
 
-        if(params.mode == 0) {  // Default mode
-            particle.position = params.origin;
+        // after the non-atomic test, we now need to to an atomic verification.
+        // try to spawn a new particle, then check if we've already spawned too many.
+        var numSpawned = atomicAdd(&spawnCounter, 1);
 
-            var velocityAbs = params.initialVelocity;
-            velocityAbs = velocityAbs * (rand() * 0.3 + 0.7); // add randomness to velocity
-            particle.velocity = vec3<f32>(0,0,0);
-            particle.velocity = randUnitVec3() * velocityAbs;
+        if(numSpawned < params.maxSpawnCount){
+            particle.lifetime = params.minLifetime + (params.maxLifetime - params.minLifetime) * rand();
+            particle.rightRotation = randUnitVec3();
 
-        } else if (params.mode == 1) {  // Snow mode
-           particle.position = vec3<f32>(0);
-           particle.position.y = params.origin.y;
-           particle.position.x = 20 * (rand() - 0.5);
-           particle.position.z = 20 * (rand() - 0.5);
+            if(params.mode == 0) {  // Default mode
+                particle.position = params.origin;
 
-           particle.velocity = vec3<f32>(0,0,0);
-           particle.velocity = randUnitVec3() * 0.015;
+                var velocityAbs = params.initialVelocity;
+                velocityAbs = velocityAbs * (rand() * 0.3 + 0.7); // add randomness to velocity
+                particle.velocity = vec3<f32>(0,0,0);
+                particle.velocity = randUnitVec3() * velocityAbs;
 
-        } else if (params.mode == 2) {  // tree mode
-            particle.position = params.origin + randUnitVec3() * (rand() * params.treeRadius);
+            } else if (params.mode == 1) {  // Snow mode
+            particle.position = vec3<f32>(0);
+            particle.position.y = params.origin.y;
+            particle.position.x = 20 * (rand() - 0.5);
+            particle.position.z = 20 * (rand() - 0.5);
+
             particle.velocity = vec3<f32>(0,0,0);
             particle.velocity = randUnitVec3() * 0.015;
+
+            } else if (params.mode == 2) {  // tree mode
+                particle.position = params.origin + randUnitVec3() * (rand() * params.treeRadius);
+                particle.velocity = vec3<f32>(0,0,0);
+                particle.velocity = randUnitVec3() * 0.015;
+            }
         }
     }
 
