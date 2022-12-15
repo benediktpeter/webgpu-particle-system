@@ -1,5 +1,5 @@
 {
-  "preset": "Leaves",
+  "preset": "Default",
   "remembered": {
     "Default": {
       "0": {
@@ -7,7 +7,7 @@
         "speedFactor": 1,
         "vertexPulling": false,
         "useSpawnCap": true,
-        "useBufferAliasing": false,
+        "useBufferAliasing": true,
         "particleHeight": 15,
         "particleWidth": 15,
         "numberOfParticles": 1000000,
@@ -15,6 +15,7 @@
         "treeRadius": 1,
         "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
+        "spawnsPerSecond": 100000,
         "enableWind": false,
         "windX": -1,
         "windY": 0,
@@ -54,6 +55,7 @@
         "treeRadius": 2.88,
         "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
+        "spawnsPerSecond": 10000,
         "enableWind": true,
         "windX": -1,
         "windY": 0,
@@ -88,11 +90,12 @@
         "useBufferAliasing": true,
         "particleHeight": 100,
         "particleWidth": 100,
-        "numberOfParticles": 1000,
+        "numberOfParticles": 10000,
         "spawnY": 0.11,
         "treeRadius": 2.88,
         "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
+        "spawnsPerSecond": 10000,
         "enableWind": true,
         "windX": -1,
         "windY": 0,
@@ -132,6 +135,7 @@
         "treeRadius": 1,
         "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
+        "spawnsPerSecond": 10000,
         "enableWind": false,
         "windX": -1,
         "windY": 0,

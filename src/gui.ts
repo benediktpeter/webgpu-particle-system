@@ -42,7 +42,9 @@ export class ParticleGUI {
 
         gravityY: -1,
 
-        speedFactor: 1
+        speedFactor: 1,
+
+        spawnsPerSecond: 100000
     }
 
     constructor() {
@@ -70,6 +72,7 @@ export class ParticleGUI {
         this.gui.add(this._guiData, "treeRadius").min(0).max(5).step(0.01)
         this.gui.add(this._guiData, 'minParticleLifetime');
         this.gui.add(this._guiData, 'maxParticleLifetime');
+        this.gui.add(this._guiData, 'spawnsPerSecond')
 
         this.gui.add(this._guiData, 'enableWind')
         this.gui.add(this._guiData, "windX").min(-2).max(2).step(0.01);
@@ -101,6 +104,7 @@ export class ParticleGUI {
 
     private addPresets() {
         Object.getOwnPropertyNames(presetsJSON.remembered).forEach(presetName => {
+            if(presetName == "Default") return;
             // @ts-ignore
             const preset = presetsJSON.remembered[presetName];
             this.addPreset(preset[0], presetName);

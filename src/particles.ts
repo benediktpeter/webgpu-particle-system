@@ -28,7 +28,7 @@ export class Particles {
     private _initialized : boolean = false;
 
     private _wind: vec4 = vec4.create();
-
+    private _spawnsPerSecond : number = 100000;
 
     private readonly _device : GPUDevice;
 
@@ -164,16 +164,16 @@ export class Particles {
         }
 
         this._toggle += deltaTime;
-        let pointsPerSec = 100_000;
+        let pointsPerSec = this._spawnsPerSecond//100_000;
         let shouldVeSpawned = Math.floor(pointsPerSec * this._toggle);
         let toSpawn = shouldVeSpawned - this._spawned;
-        
+
         this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;
-        buffer?.setMaxSpawnCount(toSpawn);
+        buffer?.setMaxSpawnCount(toSpawn+1);
         // buffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
         buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
         buffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
-        
+
         this._spawned += toSpawn;
         if(this._toggle > 1.0){
             this._toggle = 0.0;
@@ -208,6 +208,7 @@ export class Particles {
         this._wind = vec4.fromValues(gui.guiData.windX, gui.guiData.windY, gui.guiData.windZ, gui.guiData.enableWind ? gui.guiData.windStrength : 0);
         this._treeRadius = gui.guiData.treeRadius;
         this._gravity = vec3.fromValues(0,gui.guiData.gravityY,0);
+        this._spawnsPerSecond = gui.guiData.spawnsPerSecond;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;
