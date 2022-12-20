@@ -105,7 +105,8 @@ export class Renderer {
             // @ts-ignore
             buttonElement.onclick = function(ev) {
                 const duration = (<HTMLInputElement>document.getElementById("benchmark-duration")).value;
-                self.startBenchmark(Number(duration));
+                const benchmarkName = (<HTMLInputElement>document.getElementById("benchmark-name")).value;
+                self.startBenchmark(Number(duration), benchmarkName);
             };
 
         } catch (error) {
@@ -489,13 +490,13 @@ export class Renderer {
         this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
     }
 
-    public startBenchmark(time: number) {
+    public startBenchmark(time: number, name: string) {
         console.log("starting benchmark for " + time + " seconds.")
         if(!this.timestampsQueriesAllowed){
             throw new Error("Timestamps queries not allowed by the browser.")
         }
         this.benchmarkActive = true;
         // @ts-ignore
-        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060", this.gui?.guiData.particleWidth, this.gui?.guiData.particleHeight);
+        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, name, this.gui?.guiData.particleWidth, this.gui?.guiData.particleHeight);
     }
 }
