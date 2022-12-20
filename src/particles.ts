@@ -54,7 +54,7 @@ export class Particles {
     private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,     // INSTANCE_SIZE = 32
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE
         });
         this._simulationStartTime = performance.now();
     }
