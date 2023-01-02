@@ -22,6 +22,8 @@ fn randUnitVec3() -> vec3<f32> {
     return normalize(result);
 }
 
+
+// The following three quaternion functions were taken from https://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/ and changed from GLSL to WGSL
 fn createQuaternion(axis: vec3<f32>, angleRad: f32) -> vec4<f32> {
     let halfAngle = angleRad / 2;
     var quat: vec4<f32>;
@@ -32,7 +34,7 @@ fn createQuaternion(axis: vec3<f32>, angleRad: f32) -> vec4<f32> {
     return quat;
 }
 
-fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32> {  // todo: add ref
+fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32> {
   var result: vec4<f32>;
   result.x = (quat1.w * quat2.x) + (quat1.x * quat2.w) + (quat1.y * quat2.z) - (quat1.z * quat2.y);
   result.y = (quat1.w * quat2.y) - (quat1.x * quat2.z) + (quat1.y * quat2.w) + (quat1.z * quat2.x);
@@ -41,7 +43,7 @@ fn multiplyQuaternions(quat1: vec4<f32>, quat2: vec4<f32>) -> vec4<f32> {  // to
   return result;
 }
 
-fn rotateVertexWithQuaternion(vertex: vec3<f32>, rotationQuat: vec4<f32>) -> vec3<f32> { // todo: add ref
+fn rotateVertexWithQuaternion(vertex: vec3<f32>, rotationQuat: vec4<f32>) -> vec3<f32> {
    let vertexQuat = vec4<f32>(vertex, 0);
    let rotationQuatInverse = vec4<f32>(-rotationQuat.xyz, rotationQuat.w);
 
@@ -146,15 +148,15 @@ fn simulate(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
     // apply wind
     particle.position += params.wind.xyz * params.wind.w * params.deltaTime;
 
+    // update particle data
+    particle.position = particle.position + (particle.velocity * params.deltaTime);
+    particle.lifetime = particle.lifetime - params.deltaTime;
+
     // rotation
     var rotationAngle = (params.deltaTime * 0.3) % (2 * 3.14159);
     var rotationAxis = normalize(cross(particle.velocity, params.wind.xyz));
     var rotationQuat = createQuaternion(rotationAxis, rotationAngle);
     particle.rightRotation = rotateVertexWithQuaternion(particle.rightRotation, rotationQuat).xyz;
-
-    // update particle data
-    particle.position = particle.position + (particle.velocity * params.deltaTime);
-    particle.lifetime = particle.lifetime - params.deltaTime;
 
     // write updated particle data into buffer
     data.particles[idx] = particle;
