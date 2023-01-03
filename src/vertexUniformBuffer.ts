@@ -7,6 +7,8 @@ export class VertexUniformBuffer {
     private readonly HALFHEIGHT_OFFSET : number = this.HALFWIDTH_OFFSET + 4;
     private readonly ROTATION_ENABLED_OFFSET : number = this.HALFHEIGHT_OFFSET + 4;
 
+    private readonly PARTICLE_SIZE_FACTOR = 0.001;
+
     private _canvasHeight : number;
     private _canvasWidth : number;
     private _device: GPUDevice;
@@ -38,12 +40,12 @@ export class VertexUniformBuffer {
     }
 
     public setHeight(height: number): void {
-        let halfHeight = (height * 0.5) / this._canvasHeight;
+        let halfHeight = (height * 0.5) * this.PARTICLE_SIZE_FACTOR// / this._canvasHeight;
         this._device.queue.writeBuffer(this._uniformBuffer, this.HALFHEIGHT_OFFSET, Float32Array.of(halfHeight));
     }
 
     public setWidth(width: number) : void {
-        let halfWidth = (width * 0.5) / this._canvasWidth;
+        let halfWidth = (width * 0.5) * this.PARTICLE_SIZE_FACTOR// / this._canvasWidth;
         this._device.queue.writeBuffer(this._uniformBuffer, this.HALFWIDTH_OFFSET, Float32Array.of(halfWidth));
     }
 
