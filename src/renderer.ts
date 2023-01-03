@@ -463,8 +463,9 @@ export class Renderer {
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
         this.fragmentUniformBuffer?.setAlphaFactor(guiData.particleBrightness);
 
-        this.vertexUniformBuffer?.setHeight(guiData.particleHeight);
-        this.vertexUniformBuffer?.setWidth(guiData.particleWidth);
+        this.vertexUniformBuffer?.setHeight(guiData.particleHeight, guiData.usePixelSize);
+        this.vertexUniformBuffer?.setWidth(guiData.particleWidth, guiData.usePixelSize);
+        this.vertexUniformBuffer?.setUsePixelSizes(guiData.usePixelSize)
         this.vertexUniformBuffer?.setEnableRotation(guiData.enableRotation)
 
         this.useVertexPulling = guiData.vertexPulling;

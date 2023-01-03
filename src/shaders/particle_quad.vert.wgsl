@@ -1,7 +1,8 @@
 struct Uniforms {
   halfwidth: f32,
   halfheight: f32,
-  rotationEnabled: u32
+  rotationEnabled: u32,
+  usePixelSize: u32
 };
 
 struct Camera {
@@ -53,6 +54,7 @@ fn main_vertex_pulling(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput 
 fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rightRotated: vec3<f32>) -> VertexOutput {
             var halfwidth = uniforms.halfwidth;
             var halfheight = uniforms.halfheight;
+            var usePixelSizes : bool = uniforms.usePixelSize == 1;
 
             var quadPos = array<vec2<f32>, 6>(
                 vec2<f32>(-halfwidth, halfheight),   //tl
@@ -85,11 +87,26 @@ fn mainVert(particlePos: vec3<f32>, particleLifetime: f32, quadVertIdx: u32, rig
             }
 
             var posPlusQuad = particlePos;
-            posPlusQuad = posPlusQuad + (quadRight * quadPos[quadVertIdx].x);
-            posPlusQuad = posPlusQuad + (quadUp * quadPos[quadVertIdx].y);
+            if(!usePixelSizes) {
+                // add quad offset in world space
+                posPlusQuad = posPlusQuad + (quadRight * quadPos[quadVertIdx].x);
+                posPlusQuad = posPlusQuad + (quadUp * quadPos[quadVertIdx].y);
+            }
 
             var output: VertexOutput;
             output.position = camera.viewProjectionMatrix * vec4<f32>(posPlusQuad,1.0);
+
+            if (usePixelSizes) {
+                // add quad offset in NDC space
+                output.position.x /= output.position.w;
+                output.position.y /= output.position.w;
+                output.position.z /= output.position.w;
+                output.position.w = 1;
+
+                output.position.x = output.position.x + quadPos[quadVertIdx].x;
+                output.position.y = output.position.y + quadPos[quadVertIdx].y;
+            }
+
             output.uv = uvs[quadVertIdx];
             output.lifetime = particleLifetime;
 

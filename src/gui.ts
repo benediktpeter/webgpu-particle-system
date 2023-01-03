@@ -44,7 +44,9 @@ export class ParticleGUI {
 
         speedFactor: 1,
 
-        spawnsPerSecond: 100000
+        spawnsPerSecond: 100000,
+
+        usePixelSize: false
     }
 
     constructor() {
@@ -66,6 +68,7 @@ export class ParticleGUI {
 
         this.gui.add(this._guiData, "particleHeight");
         this.gui.add(this._guiData, "particleWidth");
+        this.gui.add(this._guiData, "usePixelSize");
 
         this.gui.add(this._guiData, 'numberOfParticles');
         this.gui.add(this._guiData, "spawnY").min(-5).max(5).step(0.01);
