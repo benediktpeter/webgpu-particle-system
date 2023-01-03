@@ -168,10 +168,10 @@ export class Particles {
         let shouldVeSpawned = Math.floor(pointsPerSec * this._toggle);
         let toSpawn = shouldVeSpawned - this._spawned;
 
-        this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;
-        buffer?.setMaxSpawnCount(toSpawn+1);
-        // buffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
-        buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
+        //this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;   //todo: cleanup
+        //buffer?.setMaxSpawnCount(toSpawn+1);
+        buffer?.setMaxSpawnCount(Math.floor( this._spawnsPerSecond * deltaTime * this._speedFactor) + 1);
+        buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnsPerSecond != 0);
         buffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
 
         this._spawned += toSpawn;
