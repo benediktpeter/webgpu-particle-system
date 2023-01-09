@@ -162,7 +162,6 @@ export class Renderer {
     }
 
     private createRenderPipelines(useAdditiveBlending: boolean = true) {
-
         let additiveBlending = {
             color: {
                 srcFactor: 'src-alpha',
@@ -474,11 +473,13 @@ export class Renderer {
             this.useAdditiveBlending = guiData.useAdditiveBlending;
             this.createRenderPipelines(this.useAdditiveBlending)
             await this.createUniformBindGroups(this.textureName)
+            this.createParticleBufferBindGroup()
         }
 
         if(this.textureName != guiData.texture) {
             this.textureName = guiData.texture;
             await this.createUniformBindGroups(this.textureName)
+            this.createParticleBufferBindGroup()
         }
     }
 
