@@ -15,7 +15,7 @@
         "treeRadius": 1,
         "minParticleLifetime": 1,
         "maxParticleLifetime": 5,
-        "spawnsPerSecond": 100000,
+        "spawnsPerSecond": 300000,
         "enableWind": false,
         "windX": -1,
         "windY": 0,

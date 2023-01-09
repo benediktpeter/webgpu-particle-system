@@ -44,7 +44,7 @@ export class ParticleGUI {
 
         speedFactor: 1,
 
-        spawnsPerSecond: 100000,
+        spawnsPerSecond: 300000,
 
         usePixelSize: false
     }
