@@ -6,9 +6,10 @@ let gui = new ParticleGUI();
 let renderer = new Renderer();
 
 function frame() {
-    renderer.updateData(gui);
-    renderer.frame();
-    requestAnimationFrame(frame);
+    renderer.updateData(gui)
+        .then(()=>renderer.frame()
+            .then(()=>requestAnimationFrame(frame))
+        )
 }
 
 function setupRendererAndStartAnimation() {

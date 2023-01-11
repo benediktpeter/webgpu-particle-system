@@ -7,8 +7,8 @@ import {TimeStamps} from "./timestamps";
 
 export class Particles {
 
-    public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4;    // vec3 position, float lifetime, vec3 velocity, padding
-    public static readonly MAX_NUM_PARTICLES = 16776960; // Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
+    public static readonly INSTANCE_SIZE = 3*4 + 4 + 3*4 + 4 + 3*4 + 4;//4 + 3*4;    // vec3 position, float lifetime, vec3 velocity, padding, vec3 rotation, padding
+    public static readonly MAX_NUM_PARTICLES = Math.floor((512 * 1024 * 1024) / Particles.INSTANCE_SIZE) - Particles.INSTANCE_SIZE;
 
     private _numParticles: number = 1000;
     private _originPos : vec3 = vec3.fromValues(0,0,0);
@@ -19,6 +19,16 @@ export class Particles {
     private _maxNumParticlesSpawnPerSecond: number = 80;
     private _useSpawnCap: boolean = true;
     private _useBufferAliasing: boolean = true;
+    private _mode: string = "default";
+    private _speedFactor: number = 1;
+    private _treeRadius: number = 1;
+
+    private _spawned: number = 0;
+    private _toggle: number = 0;
+    private _initialized : boolean = false;
+
+    private _wind: vec4 = vec4.create();
+    private _spawnsPerSecond : number = 100000;
 
     private readonly _device : GPUDevice;
 
@@ -28,8 +38,6 @@ export class Particles {
     private _simulationBindGroup?: GPUBindGroup;
 
     private _spawnCounterBuffer?: GPUBuffer;
-    private _spawnCap: number = 1;
-
     private _simulationStartTime: any;
     private _timestamps?: TimeStamps;
 
@@ -44,7 +52,7 @@ export class Particles {
     private createGPUParticleBuffer() {
         this._particleBuffer = this._device.createBuffer({
             size: this._numParticles * Particles.INSTANCE_SIZE,     // INSTANCE_SIZE = 32
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE
         });
         this._simulationStartTime = performance.now();
     }
@@ -137,18 +145,38 @@ export class Particles {
         }
 
         // update uniform data
-        this._simulationUniformBuffer?.setDeltaTime(deltaTime);
-        this._simulationUniformBuffer?.setMinLifetime(this._minParticleLifetime);
-        this._simulationUniformBuffer?.setMaxLifetime(this._maxParticleLifetime);
-        this._simulationUniformBuffer?.setGravity(this._gravity);
-        this._simulationUniformBuffer?.setOrigin(this._originPos);
-        this._simulationUniformBuffer?.setInitialVelocity(this._initialVelocity);
-        this._simulationUniformBuffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
+        let buffer = this._simulationUniformBuffer;
+        buffer?.setDeltaTime(deltaTime * this._speedFactor);
+        buffer?.setMinLifetime(this._minParticleLifetime);
+        buffer?.setMaxLifetime(this._maxParticleLifetime);
+        buffer?.setGravity(this._gravity);
+        buffer?.setOrigin(this._originPos);
+        buffer?.setInitialVelocity(this._initialVelocity);
+        buffer?.setWind(this._wind);
+        buffer?.setTreeRadius(this._treeRadius);
+        buffer?.setRandSeed(vec4.fromValues(Math.random(),Math.random(),Math.random(),Math.random()));
 
-        this._spawnCap += this._numParticles * 0.001 * deltaTime;
-        this._simulationUniformBuffer?.setMaxSpawnCount(Math.floor( this._spawnCap) + 1);
-        this._simulationUniformBuffer?.setUseSpawnCap(this._useSpawnCap && this._spawnCap != 0);
-        this._simulationUniformBuffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
+        if(this._initialized === false){
+            this._toggle = 0;
+            this._initialized = true;
+        }
+
+        this._toggle += deltaTime;
+        let pointsPerSec = this._spawnsPerSecond//100_000;
+        let shouldVeSpawned = Math.floor(pointsPerSec * this._toggle);
+        let toSpawn = shouldVeSpawned - this._spawned;
+
+        buffer?.setMaxSpawnCount(Math.floor( this._spawnsPerSecond * deltaTime * this._speedFactor) + 1);
+        buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnsPerSecond != 0);
+        buffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
+
+        this._spawned += toSpawn;
+        if(this._toggle > 1.0){
+            this._toggle = 0.0;
+            this._spawned = 0;
+        }
+
+        buffer?.setMode(this._mode);
 
         // compute pass
         const commandEncoder = this._device.createCommandEncoder();
@@ -169,21 +197,20 @@ export class Particles {
         this._maxParticleLifetime = gui.guiData.maxParticleLifetime;
         this._useSpawnCap = gui.guiData.useSpawnCap;
         this._useBufferAliasing = gui.guiData.useBufferAliasing;
+        this._mode = gui.guiData.mode;
+        this._originPos = vec3.fromValues(0, gui.guiData.spawnY, 0);
+        this._speedFactor = gui.guiData.speedFactor;
+
+        this._wind = vec4.fromValues(gui.guiData.windX, gui.guiData.windY, gui.guiData.windZ, gui.guiData.enableWind ? gui.guiData.windStrength : 0);
+        this._treeRadius = gui.guiData.treeRadius;
+        this._gravity = vec3.fromValues(0,gui.guiData.gravityY,0);
+        this._spawnsPerSecond = gui.guiData.spawnsPerSecond;
 
         if (gui.guiData.numberOfParticles != this._numParticles) {
             let oldParticleBuffer = this._particleBuffer;
             const oldNumParticles = this._numParticles
             this._numParticles = gui.guiData.numberOfParticles;
             this.createGPUParticleBuffer()  //create a new buffer of the correct length
-
-            if (oldParticleBuffer && this._particleBuffer) {
-                // copy data from the old buffer to the new one
-                const commandEncoder = this._device.createCommandEncoder();
-                commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
-                this._device.queue.submit([commandEncoder.finish()]);
-            } else {
-                throw new Error("Particle Buffer now defined");
-            }
 
             oldParticleBuffer?.destroy()    // destroy the old buffer
 

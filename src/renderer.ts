@@ -47,6 +47,9 @@ export class Renderer {
     private benchmark?: BenchmarkLogger;
     private gui?: ParticleGUI;
 
+    private textureName: string = "";
+    private useAdditiveBlending: boolean = true;
+
 
     calculateDeltaTime(): void {
         if (!this.lastTime) {
@@ -102,7 +105,8 @@ export class Renderer {
             // @ts-ignore
             buttonElement.onclick = function(ev) {
                 const duration = (<HTMLInputElement>document.getElementById("benchmark-duration")).value;
-                self.startBenchmark(Number(duration));
+                const benchmarkName = (<HTMLInputElement>document.getElementById("benchmark-name")).value;
+                self.startBenchmark(Number(duration), benchmarkName);
             };
 
         } catch (error) {
@@ -128,10 +132,63 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
-        await this.initParticleRenderingPipeline()
+        await this.setupParticleRenderingPipelines()
     }
 
-    public async initParticleRenderingPipeline() {
+    public async setupParticleRenderingPipelines() {
+
+        this.createRenderPipelines(true);
+
+        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
+        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0, 0.2);
+        this.camera = new OrbitCamera([0,0,1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
+        this.cameraUniformBuffer = this.device.createBuffer({
+            size: 16*4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        this.writeCameraBuffer();
+
+
+        // @ts-ignore
+        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
+        if(this.timestamps) {
+            this.particleSystem.timestamps = this.timestamps;
+        }
+
+
+        await this.createUniformBindGroups("circle_05.png");
+
+        this.createParticleBufferBindGroup()
+    }
+
+    private createRenderPipelines(useAdditiveBlending: boolean = true) {
+        let additiveBlending = {
+            color: {
+                srcFactor: 'src-alpha',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+            alpha: {
+                srcFactor: 'zero',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+        };
+
+        let noBlending = {
+            color: {
+                srcFactor: 'one',
+                dstFactor: 'zero',
+                operation: 'add',
+            },
+            alpha: {
+                srcFactor: 'one',
+                dstFactor: 'one',
+                operation: 'add',
+            },
+        };
+
+
         this.particleRenderPipelineInstancing = this.device.createRenderPipeline({
             layout: "auto",
             vertex: {
@@ -154,8 +211,14 @@ export class Renderer {
                             {
                                 // lifetime
                                 shaderLocation: 1,
-                                offset: 3*4,
+                                offset: 3 * 4,
                                 format: 'float32'
+                            },
+                            {
+                                // rotated right vector
+                                shaderLocation: 2,
+                                offset: 8*4,
+                                format: 'float32x3'
                             }
                         ],
                     }
@@ -168,18 +231,7 @@ export class Renderer {
                 entryPoint: "main",
                 targets: [{
                     format: this.format,
-                    blend: {
-                        color: {
-                            srcFactor: 'src-alpha',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                        alpha: {
-                            srcFactor: 'zero',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                    }
+                    blend: useAdditiveBlending ? additiveBlending : noBlending
                 }]
             },
             primitive: {
@@ -203,18 +255,7 @@ export class Renderer {
                 entryPoint: "main",
                 targets: [{
                     format: this.format,
-                    blend: {
-                        color: {
-                            srcFactor: 'src-alpha',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                        alpha: {
-                            srcFactor: 'zero',
-                            dstFactor: 'one',
-                            operation: 'add',
-                        },
-                    }
+                    blend: useAdditiveBlending ? additiveBlending : noBlending
                 }]
             },
             primitive: {
@@ -222,29 +263,13 @@ export class Renderer {
             }
         });
 
-        if(!this.particleRenderPipelineVertexPulling) {
+        if (!this.particleRenderPipelineVertexPulling) {
             throw new Error("Vertex Pulling Pipeline creation failed.")
         }
+    }
 
-
-        this.vertexUniformBuffer = new VertexUniformBuffer(this.device, this.canvasHeight, this.canvasWidth, 10, 10);
-        this.fragmentUniformBuffer = new FragmentUniformBuffer(this.device, vec3.fromValues(0,1,0), vec3.fromValues(1,0,0), 5.0, 0.2);
-        this.camera = new OrbitCamera([0,0,1], [0,0,0], [0,1,0], 90, this.canvasWidth/this.canvasHeight);
-        this.cameraUniformBuffer = this.device.createBuffer({
-            size: 16*4,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        });
-        this.writeCameraBuffer();
-
-
-        // @ts-ignore
-        this.particleSystem = new Particles(this.device, this.gui.guiData.numberOfParticles);
-        if(this.timestamps) {
-            this.particleSystem.timestamps = this.timestamps;
-        }
-
-
-        const particleTexture = await loadTexture(this.device, "circle_05.png");
+    private async createUniformBindGroups(textureFilePath: string) {
+        const particleTexture = await loadTexture(this.device, textureFilePath);
         this.uniformBindGroup = this.device.createBindGroup({
             layout: this.particleRenderPipelineInstancing.getBindGroupLayout(0),
             entries: [
@@ -269,7 +294,7 @@ export class Renderer {
                     resource: {
                         buffer: this.cameraUniformBuffer,
                         offset: 0,
-                        size: 16*4
+                        size: 16 * 4
                     }
                 },
                 {
@@ -284,7 +309,9 @@ export class Renderer {
         });
 
 
+
         this.uniformBindGroupVP = this.device.createBindGroup({
+            // @ts-ignore
             layout: this.particleRenderPipelineVertexPulling.getBindGroupLayout(0),
             entries: [
                 {
@@ -308,7 +335,7 @@ export class Renderer {
                     resource: {
                         buffer: this.cameraUniformBuffer,
                         offset: 0,
-                        size: 16*4
+                        size: 16 * 4
                     }
                 },
                 {
@@ -321,8 +348,6 @@ export class Renderer {
                 }
             ]
         });
-
-        this.createParticleBufferBindGroup()
     }
 
     private createParticleBufferBindGroup() {
@@ -407,7 +432,7 @@ export class Renderer {
         }
     }
 
-    public frame() {
+    public async frame() {
         // Note: It likely makes more sense to have a separate update class later
 
         this.calculateDeltaTime();
@@ -415,7 +440,7 @@ export class Renderer {
         this.renderParticles();
     }
 
-    public updateData(gui : ParticleGUI): void {
+    public async updateData(gui : ParticleGUI): Promise<void> {
         // update simulation properties
         this.particleSystem?.updateData(gui);
 
@@ -426,17 +451,36 @@ export class Renderer {
 
         const guiData = gui.guiData;
 
-        const particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
+        let particleColor = vec3.fromValues(1,1,1);
+        let particleColor2 = vec3.fromValues(1,1,1);
+        if (guiData.useCustomColors) {
+            particleColor = vec3ToColor(vec3FromArray(guiData.particleColor));
+            particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
+        }
+
         this.fragmentUniformBuffer?.setColor(vec3.fromValues(particleColor[0], particleColor[1],particleColor[2]));
-        const particleColor2 = vec3ToColor(vec3FromArray(guiData.particleColor2));
         this.fragmentUniformBuffer?.setColor2(vec3.fromValues(particleColor2[0], particleColor2[1],particleColor2[2]));
         this.fragmentUniformBuffer?.setAlphaFactor(guiData.particleBrightness);
 
-        this.vertexUniformBuffer?.setHeight(guiData.particleHeight);
-        this.vertexUniformBuffer?.setWidth(guiData.particleWidth);
+        this.vertexUniformBuffer?.setHeight(guiData.particleHeight, guiData.usePixelSize);
+        this.vertexUniformBuffer?.setWidth(guiData.particleWidth, guiData.usePixelSize);
+        this.vertexUniformBuffer?.setUsePixelSizes(guiData.usePixelSize)
+        this.vertexUniformBuffer?.setEnableRotation(guiData.enableRotation)
 
         this.useVertexPulling = guiData.vertexPulling;
 
+        if(this.useAdditiveBlending != guiData.useAdditiveBlending) {
+            this.useAdditiveBlending = guiData.useAdditiveBlending;
+            this.createRenderPipelines(this.useAdditiveBlending)
+            await this.createUniformBindGroups(this.textureName)
+            this.createParticleBufferBindGroup()
+        }
+
+        if(this.textureName != guiData.texture) {
+            this.textureName = guiData.texture;
+            await this.createUniformBindGroups(this.textureName)
+            this.createParticleBufferBindGroup()
+        }
     }
 
     //this should probably be moved into the camera class
@@ -448,13 +492,13 @@ export class Renderer {
         this.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraMat.buffer);
     }
 
-    public startBenchmark(time: number) {
+    public startBenchmark(time: number, name: string) {
         console.log("starting benchmark for " + time + " seconds.")
         if(!this.timestampsQueriesAllowed){
             throw new Error("Timestamps queries not allowed by the browser.")
         }
         this.benchmarkActive = true;
         // @ts-ignore
-        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, "GTX1060", this.gui?.guiData.particleWidth, this.gui?.guiData.particleHeight);
+        this.benchmark = new BenchmarkLogger(time, this.particleSystem?.numParticles, this.gui.guiData.vertexPulling, name, this.gui?.guiData.particleWidth, this.gui?.guiData.particleHeight);
     }
 }

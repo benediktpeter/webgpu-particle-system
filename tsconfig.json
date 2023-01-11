@@ -14,10 +14,10 @@
       "module": "commonjs",
       "esModuleInterop": true,
       "strict": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "resolveJsonModule": true
     },
     "exclude": [
       "node_modules"
     ]
   }
-  
