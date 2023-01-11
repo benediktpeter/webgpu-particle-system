@@ -38,8 +38,6 @@ export class Particles {
     private _simulationBindGroup?: GPUBindGroup;
 
     private _spawnCounterBuffer?: GPUBuffer;
-    private _spawnCap: number = 1;
-
     private _simulationStartTime: any;
     private _timestamps?: TimeStamps;
 
@@ -168,8 +166,6 @@ export class Particles {
         let shouldVeSpawned = Math.floor(pointsPerSec * this._toggle);
         let toSpawn = shouldVeSpawned - this._spawned;
 
-        //this._spawnCap += this._numParticles * 0.001 * deltaTime * this._speedFactor;   //todo: cleanup
-        //buffer?.setMaxSpawnCount(toSpawn+1);
         buffer?.setMaxSpawnCount(Math.floor( this._spawnsPerSecond * deltaTime * this._speedFactor) + 1);
         buffer?.setUseSpawnCap(this._useSpawnCap && this._spawnsPerSecond != 0);
         buffer?.setUseSpawnCapAliasing(this._useBufferAliasing);
@@ -215,15 +211,6 @@ export class Particles {
             const oldNumParticles = this._numParticles
             this._numParticles = gui.guiData.numberOfParticles;
             this.createGPUParticleBuffer()  //create a new buffer of the correct length
-
-            // if (oldParticleBuffer && this._particleBuffer) {
-            //     // copy data from the old buffer to the new one
-            //     const commandEncoder = this._device.createCommandEncoder();
-            //     commandEncoder.copyBufferToBuffer(oldParticleBuffer, 0, this._particleBuffer, 0, Math.min(this._numParticles, oldNumParticles));
-            //     this._device.queue.submit([commandEncoder.finish()]);
-            // } else {
-            //     throw new Error("Particle Buffer now defined");
-            // }
 
             oldParticleBuffer?.destroy()    // destroy the old buffer
 

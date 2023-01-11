@@ -2,7 +2,7 @@ export class VertexUniformBuffer {
 
     private readonly _uniformBuffer : GPUBuffer;
 
-    private _bufferSize = 4 + 4 + 4 + 4; //float, float, u32
+    private _bufferSize = 4 + 4 + 4 + 4;
     private readonly HALFWIDTH_OFFSET : number = 0;
     private readonly HALFHEIGHT_OFFSET : number = this.HALFWIDTH_OFFSET + 4;
     private readonly ROTATION_ENABLED_OFFSET : number = this.HALFHEIGHT_OFFSET + 4;
